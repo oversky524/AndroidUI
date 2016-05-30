@@ -1,0 +1,54 @@
+<resources>
+
+    <style name="activity_root">
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:clipToPadding">true</item>
+        <item name="android:background">@null</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="MyActionbarTextAppearance" parent="TextAppearance.AppCompat.Menu">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="fullScreen" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!--标题栏下的阴影-->
+    <!--<style name="shadow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:background">@mipmap/shadow</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:src">@null</item>
+    </style>-->
+
+    <style name="post_popupmenu" parent="TextAppearance.AppCompat.Widget.PopupMenu.Large">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="dialog" parent="@android:style/Theme.Dialog">
+        <item name="android:windowIsFloating">true</item>
+        <!-- 设置未浮动窗口 -->
+        <item name="android:windowFrame">@null</item>
+        <!-- 设置无边框 -->
+        <item name="android:windowNoTitle">true</item>
+        <!-- 设置无标题 -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- 设置完全透明 -->
+        <item name="android:backgroundDimEnabled">true</item>
+        <!-- 设置屏幕变暗 -->
+    </style>
+
+    <!--水平分割线-->
+    <style name="divider">
+        <item name="android:background">#bdbdbd</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0.3dp</item>
+    </style>
+
+</resources>

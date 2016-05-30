@@ -1,0 +1,2 @@
+include ':app', ':umeng', ':base', ':centeredchildviewpager', ':waveloadingview', ':styledtext', ':resources',
+        ':flowlayout', ':multi-image-selector'

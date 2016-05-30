@@ -1,0 +1,17 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.oversky524.resources">
+
+    <application
+        android:allowBackup="false"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+        <activity android:name=".DrawableActivity"
+            android:label="@string/drawable">
+            <intent-filter>
+                <action android:name="android.intent.action.UiDemos" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

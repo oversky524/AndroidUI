@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@null"
+    android:textSize="15sp"
+    android:layout_gravity="center_vertical"
+    android:paddingTop="11dp"
+    android:paddingRight="11dp"
+    android:paddingLeft="11dp"
+    android:paddingBottom="11dp"
+    android:id="@+id/tab_head_textview"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>

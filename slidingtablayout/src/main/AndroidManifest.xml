@@ -1,0 +1,25 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.humblerookie">
+
+    <application
+        android:supportsRtl="true">
+
+        <activity android:name="io.oversky524.slidingtablayout.MyTransactionActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:label="@string/natural_sliding_tab">
+            <intent-filter>
+                <action android:name="android.intent.action.UiDemos" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="io.oversky524.slidingtablayout.SigninRecordsActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:label="@string/two_equal">
+            <intent-filter>
+                <action android:name="android.intent.action.UiDemos" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

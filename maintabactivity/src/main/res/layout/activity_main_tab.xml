@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/activity_root"
+    android:orientation="vertical"
+    android:background="@null">
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+        <FrameLayout
+            android:id="@+id/real_tab_content"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+
+        <android.support.v4.app.FragmentTabHost
+            android:id="@android:id/tabhost"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <FrameLayout
+                android:id="@android:id/tabcontent"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+        </android.support.v4.app.FragmentTabHost>
+    </FrameLayout>
+
+    <View android:background="#8c8c8c"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+
+    <RadioGroup android:background="#fcfcfc"
+        android:id="@+id/tabs"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        
+        <RadioButton style="@style/tab_in_main_page"
+            android:checked="true"
+            android:drawableTop="@drawable/selector_tab_homepage"
+            android:id="@+id/home_page"
+            android:text="主页"/>
+
+        <RadioButton style="@style/tab_in_main_page"
+            android:drawableTop="@drawable/selector_tab_investment"
+            android:id="@+id/investment"
+            android:text="投资"/>
+
+        <RadioButton style="@style/tab_in_main_page"
+            android:drawableTop="@drawable/selector_tab_mine"
+            android:id="@+id/mine"
+            android:text="我的"/>
+
+        <RadioButton style="@style/tab_in_main_page"
+            android:drawableTop="@drawable/selector_tab_help"
+            android:id="@+id/help"
+            android:text="帮助"/>
+    </RadioGroup>
+</LinearLayout>

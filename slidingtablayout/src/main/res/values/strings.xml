@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="investment">投资</string>
+    <string name="redemption">赎回</string>
+    <string name="charge">充值</string>
+    <string name="all">全部</string>
+    <string name="two_equal">Two Equal Sliding Tab Layout</string>
+    <string name="natural_sliding_tab">Natural Sliding Tab Layout</string>
+    <string name="my_transaction">我的交易</string>
+    <string name="signin_records">签到记录</string>
+    <string name="good_friends">好友</string>
+    <string name="reward">奖励</string>
+</resources>

@@ -1,2 +1,3 @@
-include ':app', ':umeng', ':base', ':centeredchildviewpager', ':waveloadingview', ':styledtext', ':resources',
-        ':flowlayout', ':multi-image-selector'
+include ':app', ':umeng', ':base', ':centeredchildviewpager', ':waveloadingview', ':lyric', ':loopviewpager',
+        ':styledtext', ':resources', ':maintabactivity',
+        ':flowlayout', ':multi-image-selector', ':slidingtablayout'

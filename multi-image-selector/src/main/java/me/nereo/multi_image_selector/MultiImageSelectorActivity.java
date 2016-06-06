@@ -9,7 +9,7 @@ import android.widget.Button;
 import java.io.File;
 import java.util.ArrayList;
 
-import io.ciwei.ui.ActivityBase;
+import io.base.ui.ActivityBase;
 
 /**
  * 多图选择

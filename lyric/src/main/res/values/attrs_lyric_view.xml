@@ -1,0 +1,10 @@
+<resources>
+    <declare-styleable name="LyricView">
+        <attr name="text_size" format="dimension"/>
+        <attr name="text_color" format="color"/>
+        <attr name="displayed_line" format="integer"/>
+        <attr name="unfocus_text_size" format="dimension"/>
+        <attr name="unfocus_text_color" format="color"/>
+        <attr name="line_space" format="dimension"/>
+    </declare-styleable>
+</resources>

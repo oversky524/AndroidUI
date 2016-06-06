@@ -1,0 +1,27 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <io.oversky524.lyric.LyricView
+        android:layout_gravity="center"
+        android:id="@+id/lyrics"
+        app:displayed_line="7"
+        app:text_color="#0fdd21"
+        app:text_size="15sp"
+        app:line_space="2dp"
+        app:unfocus_text_color="#ff00f0"
+        app:unfocus_text_size="12sp"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:background="#ffffff"
+        android:paddingBottom="40dp"
+        android:paddingLeft="20dp" />
+
+    <Button android:id="@+id/set_line"
+        android:layout_gravity="center_horizontal"
+        android:text="Set Displayed line to 2"
+        android:layout_width="200dp"
+        android:layout_height="20dp" />
+
+</FrameLayout>

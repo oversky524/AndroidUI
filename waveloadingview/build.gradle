@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 /*apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'*/
 
@@ -25,11 +26,18 @@ android {
     lintOptions {
         abortOnError false
     }
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':base')
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
+repositories {
+    mavenCentral()
 }
 
 /*def siteUrl = 'https://github.com/tangqi92/WaveLoadingView'

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/activity_root">
+
+    <include layout="@layout/include_toolbar"/>
+
+    <com.humblerookie.widgets.SlidingTabLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:defaultTextColor="#8c8c8c"
+        app:selTextColor="@color/default_red"
+        android:id="@+id/tab_indicators"
+        android:background="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <android.support.v4.view.ViewPager
+        android:background="@null"
+        android:id="@+id/viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>

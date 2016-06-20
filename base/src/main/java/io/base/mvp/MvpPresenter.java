@@ -35,5 +35,7 @@ abstract public class MvpPresenter<MvpView> {
 
     public Context getContext(){ return mContext; }
 
-    protected void addSubscription(Subscription subscription){ mCompositeSubscription.add(subscription); }
+    protected void addSubscription(Subscription s){ mCompositeSubscription.add(s); }
+
+    protected void removeSubscription(Subscription s){ mCompositeSubscription.remove(s); }
 }

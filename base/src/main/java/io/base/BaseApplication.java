@@ -2,6 +2,7 @@ package io.base;
 
 import android.app.Application;
 
+import com.ciwei.umeng.UmengAnalysis;
 import com.ciwei.umeng.UmengUtils;
 
 import io.base.ui.ActivityLifeCycle;
@@ -23,6 +24,7 @@ public class BaseApplication extends Application {
         super.onCreate();
         sApplication = this;
         SharedPreferencesUtils.initConfigFile(this);
+        registerActivityLifecycleCallbacks(new UmengAnalysis());
         registerActivityLifecycleCallbacks(new ActivityLifeCycle());
         UmengUtils.init(mDebug, this);
     }

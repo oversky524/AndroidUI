@@ -2,7 +2,6 @@ package io.oversky524.maintabactivity;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTabHost;
@@ -13,7 +12,6 @@ import io.base.ui.ActivityBase;
 import io.base.ui.ActivityLifeCycle;
 import io.base.ui.FragmentBase;
 import io.base.utils.AndroidUtils;
-import io.base.utils.ResourcesUtils;
 
 public class MainTabActivity extends ActivityBase implements RadioGroup.OnCheckedChangeListener {
     private static final int TAB_HOME_PAGE = 0;

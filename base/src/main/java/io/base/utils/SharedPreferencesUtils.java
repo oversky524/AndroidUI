@@ -44,9 +44,7 @@ public class SharedPreferencesUtils {
      * @param defaultValue
      * @return
      */
-    public static String getString(String key,String defaultValue){
-        return sp.getString (key, defaultValue);
-    }
+    public static String getString(String key,String defaultValue){ return sp.getString (key, defaultValue); }
 
     /**
      * 获取int
@@ -93,13 +91,9 @@ public class SharedPreferencesUtils {
      * @param defaultValue
      * @return
      */
-    public static boolean getBoolean(String key,boolean defaultValue){
-        return sp.getBoolean (key, defaultValue);
-    }
+    public static boolean getBoolean(String key,boolean defaultValue){ return sp.getBoolean (key, defaultValue); }
 
-    public static void putBoolean(String key,boolean value){
-        edit.putBoolean (key, value).commit ();
-    }
+    public static void putBoolean(String key,boolean value){ edit.putBoolean (key, value).commit (); }
 
     /**
      * 获取float
@@ -120,6 +114,8 @@ public class SharedPreferencesUtils {
         edit.clear ().commit();
         SharedPreferencesUtils.setVersionCode(versionCode);
     }
+
+    public static void remove(String key){ edit.remove(key).commit (); }
 
     /**
      * 获取与保存版本号

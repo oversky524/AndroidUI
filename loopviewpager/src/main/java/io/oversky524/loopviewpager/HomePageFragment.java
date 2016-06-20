@@ -3,6 +3,8 @@ package io.oversky524.loopviewpager;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +19,7 @@ import java.util.Arrays;
 
 import io.base.ui.FragmentBase;
 import io.base.utils.ImageLoadUtils;
+import io.base.utils.ViewUtils;
 
 /**
  * Created by gaochao on 2016/5/5.
@@ -30,6 +33,31 @@ public class HomePageFragment extends FragmentBase {
         View view = inflater.inflate(R.layout.fragment_home_page, container, false);
         mLoopViewPager = (ConvenientBanner)view.findViewById(R.id.viewpager);
         initLoop();
+        ViewPager viewPager = (ViewPager)view.findViewById(R.id.viewpager2);
+        viewPager.setAdapter(new PagerAdapter() {
+            @Override
+            public void destroyItem(ViewGroup container, int position, Object object) { container.removeView((View)object); }
+
+            @Override
+            public Object instantiateItem(ViewGroup container, int position) {
+                ImageView imageView = new ImageView(getContext());
+                container.addView(imageView);
+                if(position == 0){
+                    ViewUtils.modifyWidth(imageView, getResources().getDisplayMetrics().widthPixels / 10);
+                }
+                ImageLoadUtils.intoGlobal(images[position], imageView);
+                return imageView;
+            }
+
+            @Override
+            public float getPageWidth(int position) { return .8f; }
+
+            @Override
+            public int getCount() { return images.length; }
+
+            @Override
+            public boolean isViewFromObject(View view, Object object) { return view == object; }
+        });
         return view;
     }
 

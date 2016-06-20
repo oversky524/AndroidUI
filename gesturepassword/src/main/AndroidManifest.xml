@@ -1,0 +1,32 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.base.gesturepassword">
+
+    <application
+        android:allowBackup="false"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+
+        <activity android:name=".CreateGesturePasswordActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.UiDemos" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".NewGesturePasswordActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.UiDemos" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".GesturePasswordActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.UiDemos" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".InputOldGesturePasswordActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.UiDemos" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

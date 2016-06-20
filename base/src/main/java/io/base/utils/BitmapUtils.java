@@ -196,9 +196,9 @@ public class BitmapUtils {
         int width = src.getWidth(), height = src.getHeight();
         if(dst == null) dst = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(dst);
-        BitmapShader bitmapShader = new BitmapShader(src, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+        BitmapShader bitmapShader = new BitmapShader(src, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
         Paint paint = new Paint();
-        paint.setStyle(Paint.Style.FILL);
+//        paint.setStyle(Paint.Style.FILL);
         paint.setShader(bitmapShader);
         paint.setAntiAlias(true);
         float radius = Math.min(width, height)/2;

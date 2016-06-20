@@ -67,7 +67,7 @@ public class ImageLoadUtils {
         Glide.with(BaseApplication.getGlobalApp()).load(file).override(width, height).centerCrop().into(imageView);
     }
 
-    private static class CircleTransformation extends BitmapTransformation {
+    public static class CircleTransformation extends BitmapTransformation {
 
         public CircleTransformation(Context context) {
             super(context);

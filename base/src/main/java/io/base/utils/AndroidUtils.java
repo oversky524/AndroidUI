@@ -323,4 +323,21 @@ public class AndroidUtils {
         InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
     }
+
+    /**
+     * 检查当前进程是否是前台进程
+     * */
+    public static boolean isForeground(Context context){
+        final int pid = android.os.Process.myPid();
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> apps = am.getRunningAppProcesses();
+        for(int i=0; i<apps.size(); ++i){
+            ActivityManager.RunningAppProcessInfo appProcessInfo = apps.get(i);
+            if(appProcessInfo != null && appProcessInfo.pid == pid &&
+                    appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND){
+                return true;
+            }
+        }
+        return false;
+    }
 }

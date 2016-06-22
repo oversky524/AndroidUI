@@ -4,6 +4,8 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -12,6 +14,7 @@ import android.view.WindowManager;
 
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
+import de.greenrobot.event.EventBus;
 import io.base.R;
 import io.base.utils.AndroidUtils;
 import io.base.utils.ResourcesUtils;
@@ -21,6 +24,20 @@ import io.base.utils.ResourcesUtils;
  */
 public class ActivityBaseRoot extends AppCompatActivity {
     private boolean mSetStatusBarOnce;
+    private boolean mSupportEventBus;
+    protected void setSupportEventBus(boolean support){ mSupportEventBus = support; }
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if(mSupportEventBus) EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mSupportEventBus) EventBus.getDefault().unregister(this);
+    }
 
     @Override
     protected void onStart() {

@@ -30,6 +30,14 @@ public class ImageLoadUtils {
         Glide.with(BaseApplication.getGlobalApp()).load(url).into(imageView);
     }
 
+    public static void intoGlobal(Uri uri, ImageView imageView){
+        Glide.with(BaseApplication.getGlobalApp()).load(uri).into(imageView);
+    }
+
+    public static void intoGlobalCenter(Uri uri, ImageView imageView){
+        Glide.with(BaseApplication.getGlobalApp()).load(uri).fitCenter().into(imageView);
+    }
+
     public static void intoGlobalCenterCrop(Uri uri, ImageView imageView){
         Glide.with(BaseApplication.getGlobalApp()).load(uri).centerCrop().into(imageView);
     }
@@ -67,7 +75,7 @@ public class ImageLoadUtils {
         Glide.with(BaseApplication.getGlobalApp()).load(file).override(width, height).centerCrop().into(imageView);
     }
 
-    public static class CircleTransformation extends BitmapTransformation {
+    private static class CircleTransformation extends BitmapTransformation {
 
         public CircleTransformation(Context context) {
             super(context);
@@ -75,18 +83,15 @@ public class ImageLoadUtils {
 
         @Override
         public String getId() {
-            return "io.ciwei.circle";
+            return "io.base.circle";
         }
 
         @Override
         protected Bitmap transform(BitmapPool pool, Bitmap toTransform, int outWidth, int outHeight) {
             int width = toTransform.getWidth(), height = toTransform.getHeight();
             Bitmap dst = pool.get(width, height, Bitmap.Config.ARGB_8888);
-            if(dst == null){
-                dst = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            }
-            BitmapUtils.circleBitmap(toTransform, dst);
-            return dst;
+            if(dst == null) dst = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            return BitmapUtils.circleBitmap(toTransform, dst);
         }
     }
 

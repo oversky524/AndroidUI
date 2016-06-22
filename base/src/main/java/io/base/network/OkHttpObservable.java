@@ -34,6 +34,7 @@ public class OkHttpObservable {
 
     public interface DealWithResponseListener{
         Object dealWith(Response response);
+        void dealWith(Throwable error);
     }
 
     private OkHttpClient mClient = new OkHttpClient();
@@ -63,14 +64,14 @@ public class OkHttpObservable {
             @Override
             public void call(Subscriber<? super Object> subscriber) {
                 final Call call = mClient.newCall(request);
+                final DealWithResponseListener listener = (pListener !=null) ? pListener : mDealWithResponseListener;
                 try {
                     Response response = call.execute();
-                    final DealWithResponseListener listener = (pListener !=null) ? pListener : mDealWithResponseListener;
                     subscriber.onNext(listener == null ? response : listener.dealWith(response));
                     subscriber.onCompleted();
-                } catch (IOException e) {
-                    subscriber.onError(e);
-                    ExceptionUtils.printExceptionStack(e);
+                } catch (Throwable e) {
+                    if(listener != null) listener.dealWith(e);
+                    else subscriber.onError(e);
                 }
             }
         }).subscribeOn(Schedulers.io());

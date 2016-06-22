@@ -1,5 +1,7 @@
 package io.base.utils;
 
+import android.text.TextUtils;
+
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -210,4 +212,38 @@ public class TimeUtils {
         return interval;
     }
 
+    /**
+     * @param time unit:ms
+     * @return yyyy-mm-dd hh:mm
+     * */
+    public static String format(long time){
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        return format.format(new Date(time));
+    }
+
+    /**
+     * 给出1990-02-22 12:30:00返回1990-02-22 12:30
+     * */
+    public static String getTime(String time){
+        if(count(time, ':') > 1) return time.substring(0, time.indexOf(':', time.indexOf(':') + 1));
+        return time;
+    }
+
+    public static int count(String str, char target){
+        if(!TextUtils.isEmpty(str)) return 0;
+
+        final int length = str.length();
+        int count = 0, start = 0;
+        while(start < length){
+            start = str.indexOf(target, start);
+            if(start == -1) break;
+            ++count;
+            ++start;
+        }
+        return count;
+    }
+
+    public static boolean isLeapYear(int year){
+        return (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0);
+    }
 }

@@ -3,6 +3,8 @@ package io.base.ui;
 import android.app.Activity;
 import android.os.Bundle;
 
+import com.umeng.analytics.MobclickAgent;
+
 import io.base.utils.AndroidUtils;
 
 /**
@@ -28,7 +30,15 @@ public class ActivityLifeCycle extends ActivityLifecycleCallbacksAdapter {
     @Override
     public void onActivityResumed(Activity activity) {
         setCurrentActivity(activity);
+        MobclickAgent.onPageStart(activity.getClass().getName());
+        MobclickAgent.onResume(activity);
         if(mCallback != null) mCallback.onEnterForeground();
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+        MobclickAgent.onPageEnd(activity.getClass().getName());
+        MobclickAgent.onPause(activity);
     }
 
     @Override

@@ -2,6 +2,7 @@ package io.base.utils;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -9,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Environment;
@@ -22,9 +24,14 @@ import android.view.inputmethod.InputMethodManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import io.base.BaseApplication;
 import io.base.R;
 import io.base.exceptions.ExceptionUtils;
 import io.base.ui.ActivityLifeCycle;
@@ -162,9 +169,10 @@ public class AndroidUtils {
      * @return
      */
     private static String sVersionName;
-    public static String getVersionName(Context context) {
+    public static String getVersionName() {
         if(sVersionName == null) {
             try {
+                Context context = BaseApplication.getGlobalApp();
                 sVersionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
             } catch (PackageManager.NameNotFoundException e) {
                 ExceptionUtils.printExceptionStack(e);
@@ -181,8 +189,9 @@ public class AndroidUtils {
      * @return
      */
     private static int sVersionCode = -1;
-    public static int getVersionCode(Context context) {
+    public static int getVersionCode() {
         if(sVersionCode == -1) {
+            Context context = BaseApplication.getGlobalApp();
             int code = -1;
             // 获取PackageManager的实例
             PackageManager packageManager = context.getPackageManager();
@@ -302,7 +311,7 @@ public class AndroidUtils {
             String deviceInfo = getDeviceId(context);
             jsonObject.put("model", "device:" + Build.DEVICE + ";brand:" + Build.BRAND);
             jsonObject.put("sys_ver", Build.VERSION.RELEASE);
-            jsonObject.put("app_ver", getVersionName(context));
+            jsonObject.put("app_ver", getVersionName());
             jsonObject.put("platform", 2);
             jsonObject.put("did", deviceInfo);
 //            jsonObject.put("channel", ChannelUtils.getChannelName(context));
@@ -329,7 +338,7 @@ public class AndroidUtils {
      * */
     public static boolean isForeground(Context context){
         final int pid = android.os.Process.myPid();
-        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager am = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> apps = am.getRunningAppProcesses();
         for(int i=0; i<apps.size(); ++i){
             ActivityManager.RunningAppProcessInfo appProcessInfo = apps.get(i);
@@ -339,5 +348,20 @@ public class AndroidUtils {
             }
         }
         return false;
+    }
+
+    public static InputStream getInputStream(Uri uri) throws FileNotFoundException {
+        switch (uri.getScheme()){
+            case ContentResolver.SCHEME_FILE:
+                File file = FileUtils.getFile(uri);
+                return new FileInputStream(file);
+
+            case ContentResolver.SCHEME_CONTENT:
+            case ContentResolver.SCHEME_ANDROID_RESOURCE:
+                return BaseApplication.getGlobalApp().getContentResolver().openInputStream(uri);
+
+            default:
+                throw new IllegalArgumentException("uri " + uri + " can't be transformed into a InputStream!");
+        }
     }
 }

@@ -86,6 +86,42 @@ public class ViewUtils {
         }
     }
 
+    /**
+     * -1 no effect
+     * */
+    public static void modifyMargins(View view, int left, int top, int right, int bottom){
+        ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams)view.getLayoutParams();
+        boolean set = false;
+        if(-1 != left && mlp.leftMargin != left){
+            mlp.leftMargin = left;
+            set = true;
+        }
+        if(-1 != right && mlp.rightMargin != right) {
+            mlp.leftMargin = left;
+            set = true;
+        }
+        if(-1 != top && mlp.topMargin != top) {
+            mlp.leftMargin = left;
+            set = true;
+        }
+        if(-1 != bottom && mlp.bottomMargin != bottom) {
+            mlp.leftMargin = left;
+            set = true;
+        }
+        if(set) view.setLayoutParams(mlp);
+    }
+
+    /**
+     * -1 no effect
+     * */
+    public static void modifyPaddings(View view, int left, int top, int right, int bottom){
+        final int lp = left == -1 ? view.getPaddingLeft() : left;
+        final int tp = top == -1 ? view.getPaddingTop() : top;
+        final int rp = right == -1 ? view.getPaddingRight() : right;
+        final int bp = bottom == -1 ? view.getPaddingBottom() : bottom;
+        view.setPadding(lp, tp, rp, bp);
+    }
+
     public static void modifyLeftMargin(View view, int leftMargin){
         ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams)view.getLayoutParams();
         if(mlp.leftMargin != leftMargin){

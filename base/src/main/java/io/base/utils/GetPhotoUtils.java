@@ -19,7 +19,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 
-import io.base.AppConfig;
+import io.base.BaseApplication;
 import io.base.R;
 
 //import com.loopj.android.http.RequestParams;
@@ -28,6 +28,9 @@ import io.base.R;
  * Created by gaochao on 2015/4/27.
  */
 public class GetPhotoUtils {
+    private static final String IMAGE_BASE_DIR = BaseApplication.getGlobalApp()
+            .getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath();
+    private static final String HEAD_PORTRAIT_PATH = IMAGE_BASE_DIR + "/head.jpg";
     private static HashMap<Uri, String> gsUriToUrl = new HashMap<>();
 
     public static String getUrl(Uri uri){
@@ -57,7 +60,7 @@ public class GetPhotoUtils {
      */
     static public void getImageByCamera(Activity activity){
         Intent intent = new Intent (MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(AppConfig.SELF_HEAD_PHOTO_CACHE_FILE)));
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(HEAD_PORTRAIT_PATH)));
         activity.startActivityForResult(intent, CAMERA);
     }
 
@@ -114,9 +117,9 @@ public class GetPhotoUtils {
     private static Uri gsUriAfterCutting;
     static public void onActivityResult(int requestCode,int resultCode,Intent data, Activity activity,
                                         int outputWidth, int outputHeight, OnGetPhotoFinishListener listener, String outputFilePath){
-        if (resultCode == NONE) { return; }// 返回错误直接退出
+        if (resultCode != Activity.RESULT_OK) return;// 返回错误直接退出
         if (requestCode == CAMERA) {
-            File f = new File (AppConfig.SELF_HEAD_PHOTO_CACHE_FILE);
+            File f = new File (HEAD_PORTRAIT_PATH);
             cutPhoto (Uri.fromFile(f), activity, outputFilePath, outputWidth, outputHeight);
         }
         if (requestCode == GALLERY) {
@@ -133,7 +136,7 @@ public class GetPhotoUtils {
     }
 
     public static String getImageRandomPath(){
-        return AppConfig.CACHE_PATH_PIC + (new SimpleDateFormat("yyyyMMddHHmmss").format(System.currentTimeMillis())) + ".jpg";
+        return IMAGE_BASE_DIR + "/" + (new SimpleDateFormat("yyyyMMddHHmmss").format(System.currentTimeMillis())) + ".jpg";
     }
 
 

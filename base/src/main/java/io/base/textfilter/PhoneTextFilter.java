@@ -6,8 +6,6 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.widget.TextView;
 
-import io.base.utils.DebugLogUtils;
-
 /**
  * Created by gaochao on 2015/11/14.
  */
@@ -31,7 +29,7 @@ public class PhoneTextFilter implements TextWatcher {
     public void onTextChanged(CharSequence s, int start, int before, int count) {
         newText = new char[count];
         TextUtils.getChars(s, start, start + count, newText, 0);
-        DebugLogUtils.v(TAG, "newText=" + new String(newText) + ",start=" + start + ",count=" + count);
+//        DebugLogUtils.v(TAG, "newText=" + new String(newText) + ",start=" + start + ",count=" + count);
         newTextInsertLoc = start;
     }
 
@@ -45,10 +43,10 @@ public class PhoneTextFilter implements TextWatcher {
             setText(reformat(content));
             return;
         }
-        DebugLogUtils.v(TAG, "newTextInsertLoc=" + newTextInsertLoc + ",textLength=" + s.length());
+//        DebugLogUtils.v(TAG, "newTextInsertLoc=" + newTextInsertLoc + ",textLength=" + s.length());
         int length = s.length();
         if(newTextInsertLoc + newText.length == length){
-            DebugLogUtils.v(TAG, "tail insertion");
+//            DebugLogUtils.v(TAG, "tail insertion");
             if(length == 3 || length == 8){
                 setText(s.toString() + ' ');
             }

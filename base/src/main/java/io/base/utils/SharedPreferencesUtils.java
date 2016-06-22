@@ -70,9 +70,9 @@ public class SharedPreferencesUtils {
         return sp.getLong(key, 0);
     }
 
-    public static void putLong(String key,long value){
-        edit.putLong(key, value).commit ();
-    }
+    public static void putLong(String key,long value){ edit.putLong(key, value).commit (); }
+
+    public static void remove(String key){ edit.remove(key).commit (); }
 
     /**
      * 获取boolean
@@ -110,12 +110,10 @@ public class SharedPreferencesUtils {
     }
 
     public static void clear(){
-        int versionCode = SharedPreferencesUtils.getVersionCode();
+        final int versionCode = SharedPreferencesUtils.getVersionCode();
         edit.clear ().commit();
         SharedPreferencesUtils.setVersionCode(versionCode);
     }
-
-    public static void remove(String key){ edit.remove(key).commit (); }
 
     /**
      * 获取与保存版本号

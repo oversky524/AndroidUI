@@ -17,6 +17,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.concurrent.TimeUnit;
 
+import io.base.exceptions.ExceptionUtils;
 import okio.Buffer;
 import okio.BufferedSource;
 
@@ -189,55 +190,60 @@ public class OkHttpLogInterceptor implements Interceptor {
         }
 
         long startNs = System.nanoTime();
-        Response response = chain.proceed(request);
-        long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+        try {
+            Response response = chain.proceed(request);
+            long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
 
-        ResponseBody responseBody = response.body();
-        long contentLength = responseBody.contentLength();
-        String bodySize = contentLength != -1 ? contentLength + "-byte" : "unknown-length";
-        logger.log("<-- " + response.code() + ' ' + response.message() + ' '
-                + response.request().url() + " (" + tookMs + "ms" + (!logHeaders ? ", "
-                + bodySize + " body" : "") + ')');
+            ResponseBody responseBody = response.body();
+            long contentLength = responseBody.contentLength();
+            String bodySize = contentLength != -1 ? contentLength + "-byte" : "unknown-length";
+            logger.log("<-- " + response.code() + ' ' + response.message() + ' '
+                    + response.request().url() + " (" + tookMs + "ms" + (!logHeaders ? ", "
+                    + bodySize + " body" : "") + ')');
 
-        if (logHeaders) {
-            Headers headers = response.headers();
-            for (int i = 0, count = headers.size(); i < count; i++) {
-                logger.log(headers.name(i) + ": " + headers.value(i));
-            }
+            if (logHeaders) {
+                Headers headers = response.headers();
+                for (int i = 0, count = headers.size(); i < count; i++) {
+                    logger.log(headers.name(i) + ": " + headers.value(i));
+                }
 
-            if (!logBody || !HttpEngine.hasBody(response)) {
-                logger.log("<-- END HTTP");
-            } else if (bodyEncoded(response.headers())) {
-                logger.log("<-- END HTTP (encoded body omitted)");
-            } else {
-                BufferedSource source = responseBody.source();
-                source.request(Long.MAX_VALUE); // Buffer the entire body.
-                Buffer buffer = source.buffer();
+                if (!logBody || !HttpEngine.hasBody(response)) {
+                    logger.log("<-- END HTTP");
+                } else if (bodyEncoded(response.headers())) {
+                    logger.log("<-- END HTTP (encoded body omitted)");
+                } else {
+                    BufferedSource source = responseBody.source();
+                    source.request(Long.MAX_VALUE); // Buffer the entire body.
+                    Buffer buffer = source.buffer();
 
-                Charset charset = UTF8;
-                MediaType contentType = responseBody.contentType();
-                if (contentType != null) {
-                    try {
-                        charset = contentType.charset(UTF8);
-                    } catch (UnsupportedCharsetException e) {
-                        logger.log("");
-                        logger.log("Couldn't decode the response body; charset is likely malformed.");
-                        logger.log("<-- END HTTP");
+                    Charset charset = UTF8;
+                    MediaType contentType = responseBody.contentType();
+                    if (contentType != null) {
+                        try {
+                            charset = contentType.charset(UTF8);
+                        } catch (UnsupportedCharsetException e) {
+                            logger.log("");
+                            logger.log("Couldn't decode the response body; charset is likely malformed.");
+                            logger.log("<-- END HTTP");
 
-                        return response;
+                            return response;
+                        }
                     }
-                }
 
-                if (contentLength != 0) {
-                    logger.log("");
-                    logger.log(buffer.clone().readString(charset));
-                }
+                    if (contentLength != 0) {
+                        logger.log("");
+                        logger.log(buffer.clone().readString(charset));
+                    }
 
-                logger.log("<-- END HTTP (" + buffer.size() + "-byte body)");
+                    logger.log("<-- END HTTP (" + buffer.size() + "-byte body)");
+                }
             }
-        }
 
-        return response;
+            return response;
+        }catch (Throwable throwable){
+            ExceptionUtils.printExceptionStack(throwable);
+            return null;
+        }
     }
 
     private boolean bodyEncoded(Headers headers) {

@@ -8,6 +8,7 @@ import com.umeng.analytics.MobclickAgent;
  * Created by gaochao on 2015/9/30.
  */
 public class FragmentBase extends Fragment {
+
     @Override
     public void onResume() {
         super.onResume();

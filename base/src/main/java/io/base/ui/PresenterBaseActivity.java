@@ -31,7 +31,7 @@ public class PresenterBaseActivity<T extends MvpPresenter> extends ActivityBase 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPresenter.attachView(this);
+        mPresenter.attachView(this, this);
     }
 
     @Override

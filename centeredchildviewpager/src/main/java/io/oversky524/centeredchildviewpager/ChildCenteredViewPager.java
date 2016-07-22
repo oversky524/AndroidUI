@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import io.base.ScrollTouchHelper;
+
 /**
  * Created by gaochao on 2016/1/27.
  */
@@ -87,7 +89,7 @@ public class ChildCenteredViewPager extends ViewGroup {
             }
 
             @Override
-            public void doScroll(float dx, float dy) {
+            public void doScroll(float dx, float tx, float dy, float ty) {
                 ChildCenteredViewPager.this.doScroll(dx);
                 if(DEBUG) Log.v(TAG, "doScroll");
             }

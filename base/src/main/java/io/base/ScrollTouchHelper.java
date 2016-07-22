@@ -1,4 +1,4 @@
-package io.oversky524.centeredchildviewpager;
+package io.base;
 
 import android.content.Context;
 import android.support.v4.view.MotionEventCompat;
@@ -7,8 +7,8 @@ import android.support.v4.view.ViewConfigurationCompat;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
-import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 
 /**
@@ -28,14 +28,20 @@ public class ScrollTouchHelper {
     private float mInitialMotionX;
     private float mInitialMotionY;
     private boolean mIsDragging;
-    private View mTargetView;
+    private ViewGroup mTargetView;
 
-    public ScrollTouchHelper(View target, ScrollTouchCallback callback){
+    public ScrollTouchHelper(ViewGroup target, ScrollTouchCallback callback) {
+        this(target, callback, false);
+    }
+
+    public ScrollTouchHelper(ViewGroup target, ScrollTouchCallback callback, boolean paged) {
         mTargetView = target;
         setScrollTouchCallback(callback);
         final Context context = target.getContext();
         final ViewConfiguration configuration = ViewConfiguration.get(context);
-        mTouchSlop = ViewConfigurationCompat.getScaledPagingTouchSlop(configuration);
+        mTouchSlop = paged ?
+                ViewConfigurationCompat.getScaledPagingTouchSlop(configuration)
+                : configuration.getScaledTouchSlop();
         mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
     }
 
@@ -55,14 +61,14 @@ public class ScrollTouchHelper {
             return false;
         }
 
-        if(action != MotionEvent.ACTION_DOWN && mIsDragging) return true;
+        if (action != MotionEvent.ACTION_DOWN && mIsDragging) return true;
 
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 mLastMotionX = mInitialMotionX = ev.getX();
                 mLastMotionY = mInitialMotionY = ev.getY();
                 mActivePointerId = MotionEventCompat.getPointerId(ev, 0);
-                if(DEBUG) Log.v(TAG, "initX=" + mInitialMotionX);
+                if (DEBUG) Log.v(TAG, "initX=" + mInitialMotionX);
                 mCallback.clearForInit();
                 mIsDragging = false;
                 break;
@@ -79,6 +85,7 @@ public class ScrollTouchHelper {
                 final float dx = x - mInitialMotionX;
                 final float y = MotionEventCompat.getY(ev, pointerIndex);
                 final float dy = y - mInitialMotionY;
+                if (DEBUG) Log.v(TAG, "mInitialMotionY1=" + mInitialMotionY + ", y=" + y);
                 if (mCallback.shouldInterceptTouchEvent(mTouchSlop, dx, dy)) {
                     mIsDragging = true;
                     requestParentDisallowInterceptTouchEvent(true);
@@ -114,7 +121,7 @@ public class ScrollTouchHelper {
                 mVelocityTracker.clear();
             }
         }
-        pointerIndex =MotionEventCompat.findPointerIndex(ev, mActivePointerId);
+        pointerIndex = MotionEventCompat.findPointerIndex(ev, mActivePointerId);
         mLastMotionX = MotionEventCompat.getX(ev, pointerIndex);
         mLastMotionY = MotionEventCompat.getY(ev, pointerIndex);
     }
@@ -147,6 +154,7 @@ public class ScrollTouchHelper {
                     final float dx = x - mInitialMotionY;
                     final float y = MotionEventCompat.getY(ev, pointerIndex);
                     final float dy = y - mInitialMotionY;
+                    if (DEBUG) Log.v(TAG, "mInitialMotionY2=" + mInitialMotionY + ", y=" + y);
                     if (mCallback.shouldInterceptTouchEvent(mTouchSlop, dx, dy)) {
                         mIsDragging = true;
                         requestParentDisallowInterceptTouchEvent(true);
@@ -159,15 +167,16 @@ public class ScrollTouchHelper {
                     final float dx = x - mLastMotionX;
                     final float y = MotionEventCompat.getY(ev, pointerIndex);
                     final float dy = y - mLastMotionY;
-                    if(DEBUG) Log.v(TAG, "x=" + x + ", lastX=" + mLastMotionX + ", dx=" + dx + ", dy=" + dy);
-                    mCallback.doScroll(dx, dy);
+                    if (DEBUG)
+                        Log.v(TAG, "x=" + x + ", lastX=" + mLastMotionX + ", dx=" + dx + ", dy=" + dy);
+                    mCallback.doScroll(dx, x - mInitialMotionX, dy, y - mInitialMotionY);
                     mLastMotionX = x;
                     mLastMotionY = y;
                 }
                 break;
 
             case MotionEvent.ACTION_UP:
-                if(DEBUG) Log.v(TAG, "mIsDragging=" + mIsDragging);
+                if (DEBUG) Log.v(TAG, "mIsDragging=" + mIsDragging);
                 if (mIsDragging) {
                     final VelocityTracker velocityTracker = mVelocityTracker;
                     velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
@@ -208,12 +217,25 @@ public class ScrollTouchHelper {
         }
     }
 
-    public interface ScrollTouchCallback{
+    public interface ScrollTouchCallback {
         void clearForInit();
+
         boolean shouldInterceptTouchEvent(int touchSlop, float dx, float dy);
-        void doScroll(float dx, float dy);
+
+        /**
+         * @param dx x offset between first down(or last move) event and this move event
+         * @param tx x offset between first down event and this move event
+         * @param dy y offset between first down(or last move) event and this move event
+         * @param dy y offset between first down event and this move event
+         */
+        void doScroll(float dx, float tx, float dy, float ty);
+
         void doActionUp(float velocityX, float velocityY, float totalDx, float totalDy, float dx, float dy);
     }
+
     private ScrollTouchCallback mCallback;
-    public void setScrollTouchCallback(ScrollTouchCallback callback){ mCallback = callback; }
+
+    public void setScrollTouchCallback(ScrollTouchCallback callback) {
+        mCallback = callback;
+    }
 }

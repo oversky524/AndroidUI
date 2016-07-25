@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <io.oversky524.pullrefresh.MyPullRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/white"
     android:id="@+id/refreshingLayout"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,6 +12,7 @@
     tools:context="io.oversky524.pullrefresh.RefreshingDemoActivity">
 
     <ListView android:id="@+id/listView"
+        android:background="@color/white"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 </io.oversky524.pullrefresh.MyPullRefreshLayout>

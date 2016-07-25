@@ -37,8 +37,19 @@ public class RefreshingDemoActivity extends AppCompatActivity {
                     }
                 });
             }
+
+            @Override
+            public void onLoadMore(final MyPullRefreshLayout refreshLayout) {
+                Observable.just(null).delay(2, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Object>() {
+                            @Override
+                            public void call(Object o) {
+                                refreshLayout.setLoadMoreDone();
+                            }
+                        });
+            }
         });
-        refreshLayout.setOnPullRefreshListener(new MeituanRefreshListener());
+        refreshLayout.setOnPullRefreshListener(new NuomiRefreshListener());
         refreshLayout.setChildCanContinuePullingListener(new ChildCanContinuePullingListener.ListViewPullingListener());
     }
 }

@@ -24,12 +24,17 @@ public class MeituanRefreshListener implements OnPullRefreshListener {
     private boolean mDownInProgressSet;
 
     @Override
-    public void init() {
+    public void initForPullingDown() {
 
     }
 
     @Override
-    public View getRefreshView(ViewGroup parent) {
+    public void initForPullingUp() {
+
+    }
+
+    @Override
+    public View getPullingDownView(ViewGroup parent) {
         Context context = parent.getContext();
         View view = LayoutInflater.from(context).inflate(R.layout.pull_down_new, parent, false);
         mTargetIv = (ImageView) view.findViewById(R.id.target);
@@ -39,6 +44,11 @@ public class MeituanRefreshListener implements OnPullRefreshListener {
         mDownRefreshingAnimationDrawable = (AnimationDrawable) ResourcesUtils.getDrawable(resources,
                 R.drawable.animation_pull_down_refreshing);
         return view;
+    }
+
+    @Override
+    public View getPullingUpView(ViewGroup parent) {
+        return null;
     }
 
     @Override
@@ -62,7 +72,12 @@ public class MeituanRefreshListener implements OnPullRefreshListener {
     }
 
     @Override
-    public void refreshing() {
+    public void upInProgress(float dx, float totalDx, float dy, float totalDy) {
+
+    }
+
+    @Override
+    public void refreshingForPullingDown() {
         if(DEBUG) Log.v(TAG, "refreshing");
         mTargetIv.setScaleX(1);
         mTargetIv.setScaleY(1);
@@ -72,9 +87,19 @@ public class MeituanRefreshListener implements OnPullRefreshListener {
     }
 
     @Override
-    public void refreshingOver() {
+    public void refreshingForPullingUp() {
+
+    }
+
+    @Override
+    public void refreshingOverForPullingDown() {
         if(DEBUG) Log.v(TAG, "refreshingOver");
         mDownInProgressSet = false;
+    }
+
+    @Override
+    public void refreshingOverForPullingUp() {
+
     }
 
     @Override
@@ -83,7 +108,17 @@ public class MeituanRefreshListener implements OnPullRefreshListener {
     }
 
     @Override
+    public int getMaxPullingUpDistance() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
     public int getMinPullingDownDistance() {
         return mTargetIv.getMeasuredHeight();
+    }
+
+    @Override
+    public int getMinPullingUpDistance() {
+        return 0;
     }
 }

@@ -6,10 +6,10 @@ import android.animation.TimeInterpolator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import android.support.v4.view.ViewCompat;
 import android.support.v4.view.animation.FastOutLinearInInterpolator;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -24,6 +24,7 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
     private static final boolean DEBUG = true;
     private static final String TAG = MyPullRefreshLayout.class.getSimpleName();
     private static final int DEFAULT_ENDING_ANIMATION_DURATION = 500;//unit: ms
+    private static final int LONG_WIDTH = 2;
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public MyPullRefreshLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
@@ -51,7 +52,7 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        boolean result = mRefreshing || mTouchHelper.onTouchEvent(event);
+        boolean result = (mDownRefreshing || mUpRefreshing) || mTouchHelper.onTouchEvent(event);
         if(DEBUG) Log.v(TAG, "onTouchEvent=" + result);
         return result;
     }
@@ -71,8 +72,10 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
     private OnPullRefreshListener mRefreshingListener;
     private View mTargetView;
     private View mRefreshingView;
-    private float mInitY;
-    private boolean mRefreshing;//swallow events when refreshing
+    private View mRefreshingUpView;
+    private float mInitY, mInitYForUp;
+    private boolean mPullingDown, mPullingUp;
+    private boolean mDownRefreshing, mUpRefreshing;//swallow events when refreshing
     private int mEndingAnimationDuration = DEFAULT_ENDING_ANIMATION_DURATION;
 
     public void setEndingAnimationDuration(int duration){
@@ -86,18 +89,34 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
     public void setOnPullRefreshListener(OnPullRefreshListener listener){
         mRefreshingListener = listener;
 
-        mRefreshingView = listener.getRefreshView(this);
-        addView(mRefreshingView, 0);
+        mRefreshingView = listener.getPullingDownView(this);
+        if(mRefreshingView != null) addView(mRefreshingView, 0);
+
+        mRefreshingUpView = listener.getPullingUpView(this);
+        if(mRefreshingUpView != null){
+            addView(mRefreshingUpView);
+            FrameLayout.LayoutParams mlp = (FrameLayout.LayoutParams)mRefreshingUpView.getLayoutParams();
+            mlp.gravity |= Gravity.BOTTOM;
+            mRefreshingUpView.setLayoutParams(mlp);
+        }
         getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
                 getViewTreeObserver().removeOnPreDrawListener(this);
                 View child = mRefreshingView;
-                final int height = child.getHeight();
-                final float y = child.getY();
-                mInitY = y;
-                child.setY(y - height);
-                mTargetView.setY(child.getY() + height);
+                if(child != null) {
+                    final int height = child.getHeight();
+                    final float y = child.getY();
+                    mInitY = y;
+                    child.setY(y - height);
+                }
+                child = mRefreshingUpView;
+                if(child != null){
+                    final int height = child.getHeight();
+                    final float y = child.getY();
+                    mInitYForUp = y;
+                    child.setY(y + height);
+                }
                 return true;
             }
         });
@@ -109,67 +128,121 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
 
     @Override
     public void clearForInit() {
-        if(!mRefreshing) mRefreshingListener.init();
+        if(mUpRefreshing){
+            mRefreshingListener.initForPullingUp();
+        }else if(mDownRefreshing){
+            mRefreshingListener.initForPullingDown();
+        }
     }
 
     @Override
     public boolean shouldInterceptTouchEvent(int touchSlop, float dx, float dy) {
-        return isEnabled() && (mRefreshing || canScrollUp(touchSlop, dx, dy));
+        if(!isEnabled()) return false;
+        if(mDownRefreshing || mUpRefreshing) return true;
+
+        if(canScrollUp(touchSlop, dx, dy)){
+            mPullingDown = true;
+            return true;
+        }
+
+        if(canScrollDown(touchSlop, dx, dy)){
+            mPullingUp = true;
+            return true;
+        }
+
+        return false;
     }
 
     private boolean canScrollUp(int touchSlop, float dx, float dy){
-        if(DEBUG) Log.v(TAG, "canScrollUp: touchSlop=" + touchSlop + ", dy=" + dy + "," +
+        if(DEBUG) Log.v(TAG, "canScrollUp: touchSlop=" + touchSlop + ", dx=" + dx + ", dy=" + dy + "," +
                 "mPullingListener.canScrollUp(mTargetView)=" + mPullingListener.canScrollUp(mTargetView));
-        return touchSlop <= dy && !mPullingListener.canScrollUp(mTargetView);
+        return LONG_WIDTH * Math.abs(dx) <= Math.abs(dy) && touchSlop <= dy && !mPullingListener.canScrollUp(mTargetView);
+    }
+
+    private boolean canScrollDown(int touchSlop, float dx, float dy){
+        if(DEBUG) Log.v(TAG, "canScrollDown: touchSlop=" + touchSlop + ", dx=" + dx + ", dy=" + dy + "," +
+                "mPullingListener.canScrollDown(mTargetView)=" + mPullingListener.canScrollDown(mTargetView));
+        return LONG_WIDTH * Math.abs(dx) <= Math.abs(dy) && touchSlop <= -dy && !mPullingListener.canScrollDown(mTargetView);
     }
 
     @Override
     public void doScroll(float dx, float totalDx, float dy, float totalDy) {
-        mRefreshingListener.downInProgress(dx, totalDx, dy, totalDy);
-        float y = mRefreshingView.getY();
-        final int top = mRefreshingView.getTop();
-        Log.v(TAG, "doScroll: y=" + y + ", dy=" + dy + ", top=" + top);
-        setYs(Math.min(Math.min(y + dy, top), mRefreshingListener.getMaxPullingDownDistance()));
-    }
-
-    private void setYs(float y){
-        mRefreshingView.setY(y);
-        mTargetView.setY(y + mRefreshingView.getHeight());
+        if(mPullingDown) {
+            mRefreshingListener.downInProgress(dx, totalDx, dy, totalDy);
+            float y = mRefreshingView.getY();
+            y = (Math.min(Math.min(y + dy, mRefreshingView.getTop()), mRefreshingListener.getMaxPullingDownDistance()));
+            mRefreshingView.setY(y);
+            mTargetView.setY(y + mRefreshingView.getHeight());
+        }else if(mPullingUp){
+            mRefreshingListener.upInProgress(dx, totalDx, dy, totalDy);
+            final float y = mRefreshingUpView.getY();
+            final float yMin = getHeight() - getPaddingBottom() - mRefreshingListener.getMaxPullingUpDistance();
+            mRefreshingUpView.setY(Math.max(y + dy, yMin));
+            mTargetView.setY(mRefreshingUpView.getY() - mTargetView.getHeight());
+        }
     }
 
     @Override
     public void doActionUp(float velocityX, float velocityY, float totalDx, float totalDy, float dx, float dy) {
         Log.v(TAG, "doActionUp");
-        final float y = mRefreshingView.getY();
-        final int height = mRefreshingView.getHeight();
-        final int minDistance = mRefreshingListener.getMinPullingDownDistance();
-        final int paddingTop = getPaddingTop();
-        final float diff = y + height - minDistance - paddingTop;
-        if(diff < 0){ //don't refresh if move distance is least than a distance when a finger releases up
-            startEndingAnimations();
-        }else if(diff > 0){ //don't leave empty when refreshing on the top of the refreshing view
-            final int duration = 200;
-            mRefreshingView.animate().y(y - diff).setDuration(duration).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    refreshing();
-                }
-            }).start();
-            mTargetView.animate().y(y - diff + height).setDuration(duration).start();
-        }else{
-            refreshing();
+        if(mPullingDown) {
+            final float y = mRefreshingView.getY();
+            final int height = mRefreshingView.getHeight();
+            final float diff = y + height - mRefreshingListener.getMinPullingDownDistance() - getPaddingTop();
+            if (diff < 0) { //don't refresh if move distance is least than a distance when a finger releases up
+                startPullingDownEndingAnimations();
+            } else if (diff > 0) { //don't leave empty when refreshing on the top of the refreshing view
+                final int duration = 200;
+                final TimeInterpolator interpolator = new FastOutLinearInInterpolator();
+                mRefreshingView.animate().y(y - diff).setDuration(duration).setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        refreshingForDown();
+                    }
+                }).setInterpolator(interpolator).start();
+                mTargetView.animate().y(y - diff + height).setInterpolator(interpolator).setDuration(duration).start();
+            } else {
+                refreshingForDown();
+            }
+        }else if(mPullingUp){
+            final float y = mRefreshingUpView.getY();
+            final int height = getHeight();
+            final int minDistance = mRefreshingListener.getMinPullingUpDistance();
+            final int paddingBottom = getPaddingBottom();
+            final float diff = height - paddingBottom - y - minDistance;
+            if(diff < 0){
+                startPullingUpEndingAnimations();
+            }else if(diff == 0){
+                refreshingForUp();
+            }else{
+                final int duration = 200;
+                final TimeInterpolator interpolator = new FastOutLinearInInterpolator();
+                mRefreshingUpView.animate().y(y + diff).setDuration(duration).setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        refreshingForUp();
+                    }
+                }).setInterpolator(interpolator).start();
+                mTargetView.animate().y(y + diff - mTargetView.getHeight()).setDuration(duration).setInterpolator(interpolator).start();
+            }
         }
     }
 
-    private void refreshing(){
-        mRefreshing = true;
-        mRefreshingListener.refreshing();
+    private void refreshingForDown(){
+        mDownRefreshing = true;
+        mRefreshingListener.refreshingForPullingDown();
         mRefreshProgressListener.onLoadNew(this);
+    }
+
+    private void refreshingForUp(){
+        mUpRefreshing = true;
+        mRefreshingListener.refreshingForPullingUp();
+        mRefreshProgressListener.onLoadMore(this);
     }
 
     public interface OnRefreshListener{
         void onLoadNew(MyPullRefreshLayout refreshLayout);
-//        void onLoadNewDone();
+        void onLoadMore(MyPullRefreshLayout refreshLayout);
     }
     private OnRefreshListener mRefreshProgressListener;
     public void setOnRefreshListener(OnRefreshListener listener){
@@ -180,52 +253,52 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
      * must be called on UI thread
      * */
     public void setLoadNewDone(){
-        startEndingAnimations();
+        startPullingDownEndingAnimations();
     }
 
-    private void startEndingAnimations(){
+    /**
+     * must be called on UI thread
+     * */
+    public void setLoadMoreDone(){
+        startPullingUpEndingAnimations();
+    }
+
+    private void startPullingDownEndingAnimations(){
         final int duration = mEndingAnimationDuration;
         final TimeInterpolator interpolator = new FastOutLinearInInterpolator();
-        /*mRefreshingView.animate().y(mInitY - mRefreshingView.getHeight()).setInterpolator(interpolator)
+        mRefreshingView.animate().y(mInitY - mRefreshingView.getHeight()).setInterpolator(interpolator)
                 .setDuration(duration).setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 end();
             }
-        }).start();*/
-
+        }).start();
         mTargetView.animate().y(mInitY).setDuration(duration).setInterpolator(interpolator).start();
     }
 
-    private Runnable mEndingAnimation;
-    private long mEndingAnimationStartTime = Long.MIN_VALUE;
-
-    private void end(){
-        mRefreshing = false;
-        mRefreshingListener.refreshingOver();
+    private void startPullingUpEndingAnimations(){
+        final int duration = mEndingAnimationDuration;
+        final TimeInterpolator interpolator = new FastOutLinearInInterpolator();
+        mRefreshingUpView.animate().y(mInitYForUp + mRefreshingUpView.getHeight()).setInterpolator(interpolator)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        end();
+                    }
+                })
+                .setDuration(duration).start();
+        mTargetView.animate().y(mInitY).setDuration(duration).setInterpolator(interpolator).start();
     }
 
-    private class TimeRunnable implements Runnable{
-        final float mFinalY, mStartY;
-
-        public TimeRunnable(float startY, float finalY){
-            mStartY = startY;
-            mFinalY = finalY;
-        }
-
-        @Override
-        public void run() {
-            final long current = System.currentTimeMillis();
-            final long elapsed = current - mEndingAnimationStartTime;
-            if(mEndingAnimationDuration > elapsed){
-                ViewCompat.postOnAnimation(mRefreshingView, this);
-                final float percent = elapsed/(float)mEndingAnimationDuration;
-                mRefreshingView.setY((mFinalY - mStartY) * percent + mStartY);
-//                mRefreshingListener.downInProgress();
-            }else{
-                mRefreshingView.setY(mFinalY);
-                mRefreshingView.removeCallbacks(this);
-            }
+    private void end(){
+        if(mDownRefreshing){
+            mPullingDown = false;
+            mDownRefreshing = false;
+            mRefreshingListener.refreshingOverForPullingDown();
+        }else if(mUpRefreshing){
+            mPullingUp = false;
+            mUpRefreshing = false;
+            mRefreshingListener.refreshingOverForPullingUp();
         }
     }
 }

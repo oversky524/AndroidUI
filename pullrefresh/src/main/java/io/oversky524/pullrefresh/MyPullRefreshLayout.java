@@ -64,6 +64,7 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
             throw new RuntimeException("Can only one child view!");
         }
         mTargetView = getChildAt(0);
+        mTargetView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         mTouchHelper = new ScrollTouchHelper(this, this);
     }
 
@@ -140,12 +141,12 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         if(!isEnabled()) return false;
         if(mDownRefreshing || mUpRefreshing) return true;
 
-        if(canScrollUp(touchSlop, dx, dy)){
+        if(mRefreshingView != null && canScrollUp(touchSlop, dx, dy)){
             mPullingDown = true;
             return true;
         }
 
-        if(canScrollDown(touchSlop, dx, dy)){
+        if(mRefreshingUpView != null && canScrollDown(touchSlop, dx, dy)){
             mPullingUp = true;
             return true;
         }

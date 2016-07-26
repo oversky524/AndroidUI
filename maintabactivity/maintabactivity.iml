@@ -115,8 +115,8 @@
     <orderEntry type="library" exported="" name="kotlin-stdlib-1.0.0" level="project" />
     <orderEntry type="library" exported="" name="analytics-5.6.1" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-23.3.0" level="project" />
-    <orderEntry type="library" exported="" name="rxjava-1.1.0" level="project" />
     <orderEntry type="library" exported="" name="okhttp-2.7.2" level="project" />
+    <orderEntry type="library" exported="" name="rxjava-1.1.0" level="project" />
     <orderEntry type="module" module-name="base" exported="" />
     <orderEntry type="library" exported="" name="android-android-23" level="project" />
   </component>

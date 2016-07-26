@@ -10,9 +10,10 @@ import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 
+import io.base.BaseApplication;
 import io.base.defaultclass.OkHttpLogInterceptor;
-import io.base.exceptions.ExceptionUtils;
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
 
@@ -20,29 +21,24 @@ import rx.schedulers.Schedulers;
  * Created by gaochao on 2016/2/17.
  */
 public class OkHttpObservable {
-    private static boolean sEnableLog = true;
+    private static boolean sEnableLog = false;
     public static void enableLog(boolean enable){ sEnableLog = enable; }
-
-    private static boolean mUnderTest = false;//是否添加LeakCanary内存泄露检查
-    public static void setUnderTest(){
-        mUnderTest = true;
-    }
 
     public interface InitOkHttpClientListener{
         void init(OkHttpClient client);
     }
 
     public interface DealWithResponseListener{
-        Object dealWith(Response response);
-        void dealWith(Throwable error);
+        Object dealWith(Response response) throws IOException;
     }
 
     private OkHttpClient mClient = new OkHttpClient();
     private DealWithResponseListener mDealWithResponseListener;
+    private Scheduler mSubscribeOnScheduler = Schedulers.io();
 
     public OkHttpObservable(InitOkHttpClientListener initOkHttpClient, DealWithResponseListener dealWithResponse){
         if(sEnableLog){
-            OkHttpLogInterceptor logging = new OkHttpLogInterceptor(mUnderTest ? new OkHttpLogInterceptor.SystemLogger()
+            OkHttpLogInterceptor logging = new OkHttpLogInterceptor(BaseApplication.underTest() ? new OkHttpLogInterceptor.SystemLogger()
                     : OkHttpLogInterceptor.Logger.DEFAULT);
             logging.setLevel(OkHttpLogInterceptor.Level.BODY);
             mClient.interceptors().add(logging);
@@ -51,7 +47,13 @@ public class OkHttpObservable {
         mDealWithResponseListener = dealWithResponse;
     }
 
+    public void init(InitOkHttpClientListener initOkHttpClient){
+        initOkHttpClient.init(mClient);
+    }
+
     public OkHttpObservable(){ this(null, null); }
+
+    public void setSubscribeOnScheduler(Scheduler scheduler){ mSubscribeOnScheduler = scheduler; }
 
     public OkHttpObservable(DealWithResponseListener dealWithResponse){ this(null, dealWithResponse); }
 
@@ -70,11 +72,10 @@ public class OkHttpObservable {
                     subscriber.onNext(listener == null ? response : listener.dealWith(response));
                     subscriber.onCompleted();
                 } catch (Throwable e) {
-                    if(listener != null) listener.dealWith(e);
-                    else subscriber.onError(e);
+                    subscriber.onError(e);
                 }
             }
-        }).subscribeOn(Schedulers.io());
+        }).subscribeOn(mSubscribeOnScheduler);
     }
 
     public Observable<Object> post(String url, RequestBody requestBody, ArrayMap<String, String> headers,

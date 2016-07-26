@@ -302,6 +302,10 @@ public class AndroidUtils {
         return "";
     }
 
+    public static String getDeviceId() {
+        return getDeviceId(BaseApplication.getGlobalApp());
+    }
+
     /**
      * 获取JSON格式的设备信息
      * */

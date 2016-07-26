@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -64,10 +65,21 @@ public class CommonPopupWindow implements View.OnTouchListener, View.OnKeyListen
 
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
         boolean focusable = builder.dismissClickingBackKey;
-        int height = dm.heightPixels;
-        if(builder.considerStatusBar) height -= AndroidUtils.getStatusBarHeight();
-        PopupWindow popupWindow = new PopupWindow(root, dm.widthPixels, height, focusable);
+        int height = builder.height;
+        if(height == 0) {
+            height = dm.heightPixels;
+            if (builder.considerStatusBar) height -= AndroidUtils.getStatusBarHeight();
+        }
+        int width = builder.width;
+        if(width < 1) width = dm.widthPixels;
+        PopupWindow popupWindow = new PopupWindow(root, width, height, focusable);
         mPopupWindow = popupWindow;
+
+        popupWindow.setAnimationStyle(builder.animationStyle);
+        popupWindow.setClippingEnabled(builder.clippingEnabled);
+        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
+            popupWindow.setAttachedInDecor(builder.attachedInDecor);
+        }
 
         root.addView(content);
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams)content.getLayoutParams();
@@ -91,11 +103,15 @@ public class CommonPopupWindow implements View.OnTouchListener, View.OnKeyListen
         popupWindow.setBackgroundDrawable(bgDrawable);
     }
 
-    public void showAtCenter(View parent){
+    public void show(View parent){
         mPopupWindow.showAtLocation(parent, Gravity.CENTER, 0, 0);
     }
 
-    public View getContentView(){ return mContentView; }
+    public void showAsDropDown(View anchorView){
+        mPopupWindow.showAsDropDown(anchorView);
+    }
+
+    public View contentView(){ return mContentView; }
 
     public void dismiss(){ mPopupWindow.dismiss(); }
 
@@ -125,10 +141,13 @@ public class CommonPopupWindow implements View.OnTouchListener, View.OnKeyListen
         private int width, height;
         private int bgResId;//drawable/mipmap/color res id
         private Drawable bgDrawable;
-        private boolean dismissTouchingOutsideContent;
-        private boolean dismissClickingBackKey;
+        private boolean dismissTouchingOutsideContent = true;
+        private boolean dismissClickingBackKey = true;
+        private boolean clippingEnabled;
+        private boolean attachedInDecor;
         private View contentView;
         private int layoutId;
+        private int animationStyle;
         private Context context;
         private boolean considerStatusBar;
 
@@ -137,62 +156,72 @@ public class CommonPopupWindow implements View.OnTouchListener, View.OnKeyListen
             if(bgResId != 0) bgDrawable = ResourcesUtils.getDrawable(context.getResources(), bgResId);
         }
 
-        public Builder setContentView(View content){
+        public Builder clippingEnabled(boolean enabled){
+            clippingEnabled = enabled;
+            return this;
+        }
+
+        public Builder animationStyle(int animationStyle){
+            this.animationStyle = animationStyle;
+            return this;
+        }
+
+        public Builder attachedInDecor(boolean enabled){
+            attachedInDecor = enabled;
+            return this;
+        }
+
+        public Builder contentView(View content){
             contentView = content;
             setContext(content.getContext());
             return this;
         }
 
-        public Builder setContentView(int layoutId, Context context){
+        public Builder contentView(int layoutId, Context context){
             this.layoutId = layoutId;
             setContext(context);
             return this;
         }
 
-        public Builder setGravity(int gravity){
+        public Builder gravity(int gravity){
             this.gravity = gravity;
             return this;
         }
 
-        public Builder center(){
-            this.gravity = Gravity.CENTER;
-            return this;
-        }
-
-        public Builder setWidth(int width){
+        public Builder width(int width){
             this.width = width;
             return this;
         }
 
-        public Builder setHeight(int height){
+        public Builder height(int height){
             this.height = height;
             return this;
         }
 
-        public Builder setSize(int width, int height){
+        public Builder size(int width, int height){
             this.width = width;
             this.height = height;
             return this;
         }
 
-        public Builder setBackground(int bgResId){
+        public Builder background(int bgResId){
             this.bgResId = bgResId;
             if(context != null) bgDrawable = ResourcesUtils.getDrawable(context.getResources(), bgResId);
             return this;
         }
 
-        public Builder setBackground(Drawable drawable){
+        public Builder background(Drawable drawable){
             bgDrawable = drawable;
             return this;
         }
 
-        public Builder dismissClickingBackKey(){
-            dismissClickingBackKey = true;
+        public Builder dismissClickingBackKey(boolean dismiss){
+            dismissClickingBackKey = dismiss;
             return this;
         }
 
-        public Builder dismissTouchingOutsideContent(){
-            dismissTouchingOutsideContent = true;
+        public Builder dismissTouchingOutsideContent(boolean dismiss){
+            dismissTouchingOutsideContent = dismiss;
             return this;
         }
 

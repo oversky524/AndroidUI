@@ -5,15 +5,14 @@ import android.os.Bundle;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import io.base.BaseApplication;
 import io.base.mvp.MvpPresenter;
 
 /**
  * Created by gaochao on 2016/3/16.
  */
 
-interface PresenterMarker<T>{}
-
-public class PresenterBaseActivity<T extends MvpPresenter> extends ActivityBase implements PresenterMarker<T> {
+public class PresenterBaseActivity<T extends MvpPresenter> extends ActivityBase {
     private T mPresenter;
 
     public PresenterBaseActivity(){
@@ -26,6 +25,12 @@ public class PresenterBaseActivity<T extends MvpPresenter> extends ActivityBase 
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setPresenter(T presenter){
+        if(!BaseApplication.underTest()) throw new RuntimeException("This method should be called under test!");
+        mPresenter = presenter;
+        presenter.attachView(this, this);
     }
 
     @Override

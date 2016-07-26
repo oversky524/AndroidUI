@@ -5,6 +5,9 @@ import android.os.Bundle;
 
 import com.umeng.analytics.MobclickAgent;
 
+import java.util.ArrayList;
+
+import io.base.BaseApplication;
 import io.base.utils.AndroidUtils;
 
 /**
@@ -13,6 +16,7 @@ import io.base.utils.AndroidUtils;
  */
 public class ActivityLifeCycle extends ActivityLifecycleCallbacksAdapter {
     private static Activity sCurrentActivity;
+    private static boolean sInBackground;
 
     public static Activity getCurrentActivity(){
         return sCurrentActivity;
@@ -22,23 +26,51 @@ public class ActivityLifeCycle extends ActivityLifecycleCallbacksAdapter {
         sCurrentActivity = activity;
     }
 
+    private static ArrayList<Activity> sActivities = new ArrayList<>();
+
+    public interface OnClearActivityConditionListener{
+        /**
+         * @return true that a activity can be finished
+         * */
+        boolean isFinished(Activity activity);
+    }
+
+    public static void clearActivities(OnClearActivityConditionListener listener){
+        ArrayList<Activity> clearedActivities = new ArrayList<>();
+        for(Activity activity : sActivities){
+            if(listener.isFinished(activity)) clearedActivities.add(activity);
+        }
+        sActivities.removeAll(clearedActivities);
+        for(Activity activity : clearedActivities){
+            activity.finish();
+        }
+    }
+
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         setCurrentActivity(activity);
+        sActivities.add(activity);
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
         setCurrentActivity(activity);
-        MobclickAgent.onPageStart(activity.getClass().getName());
-        MobclickAgent.onResume(activity);
-        if(mCallback != null) mCallback.onEnterForeground();
+        if(!BaseApplication.underTest()) {
+            MobclickAgent.onPageStart(activity.getClass().getName());
+            MobclickAgent.onResume(activity);
+        }
+        if(mCallback != null && sInBackground){
+            mCallback.onEnterForeground();
+            sInBackground = false;
+        }
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        MobclickAgent.onPageEnd(activity.getClass().getName());
-        MobclickAgent.onPause(activity);
+        if(!BaseApplication.underTest()) {
+            MobclickAgent.onPageEnd(activity.getClass().getName());
+            MobclickAgent.onPause(activity);
+        }
     }
 
     @Override
@@ -46,11 +78,15 @@ public class ActivityLifeCycle extends ActivityLifecycleCallbacksAdapter {
         if(getCurrentActivity() == activity){
             setCurrentActivity(null);
         }
+        sActivities.remove(activity);
     }
 
     @Override
     public void onActivityStopped(Activity activity) {
-        if(mCallback != null && !AndroidUtils.isForeground(activity)) mCallback.onEnterBackground();
+        if(mCallback != null && !AndroidUtils.isForeground(activity)){
+            mCallback.onEnterBackground();
+            sInBackground = true;
+        }
     }
 
     public interface Callback{

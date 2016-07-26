@@ -33,4 +33,47 @@ public class FileUtils {
             }
         }
     }
+
+    public static long getSize(File file){
+        if(file.isDirectory()){
+            long size = 0;
+            for(File f : file.listFiles()){
+                size += getSize(f);
+            }
+            return size;
+        }else{
+            return file.length();
+        }
+    }
+
+    /*public static double getSize(long size, Unit unit){
+        switch (unit){
+            case K:
+                return size/1024.0;
+
+            case M:
+                return size/(1024*1024.0);
+
+            case G:
+                return size/(1024*1024*1024.0);
+
+            default:
+                throw new IllegalArgumentException(unit.toString());
+        }
+    }
+
+    public enum Unit{
+        B("B"), K("K"), M("M"), G("G");
+
+        Unit(String name){
+            mName = name;
+        }
+
+        private String mName;
+
+        @Override
+        public String toString() {
+            return mName;
+        }
+    }*/
 }

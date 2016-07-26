@@ -5,6 +5,7 @@ import android.content.Context;
 import android.widget.TextView;
 
 import io.base.R;
+import io.base.exceptions.ExceptionUtils;
 
 /**
  * @ClassName: ProgressUtil
@@ -31,8 +32,10 @@ public final class ProgressDialogUtil {
 //            View view=View.inflate(context, R.layout.dialog_loading,null);
             dialog.setContentView (R.layout.dialog_loading);
             dialog.setCancelable(true);
-            TextView tv_msg= (TextView) dialog.findViewById(R.id.tv_msg);
-            tv_msg.setText(msg);
+            if(msg != null) {
+                TextView tv_msg = (TextView) dialog.findViewById(R.id.tv_msg);
+                tv_msg.setText(msg);
+            }
             dialog.show ();
         } catch (Exception e) {
             ExceptionUtils.printExceptionStack(e);

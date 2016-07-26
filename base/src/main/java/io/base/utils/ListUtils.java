@@ -1,6 +1,7 @@
 package io.base.utils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,5 +16,14 @@ public class ListUtils {
 
     public static <T extends Serializable> Serializable getSerializable(List<T> list){
         return isEmpty(list) ? "" : list.get(0);
+    }
+
+    public static <T> int addAllExcludingEquals(ArrayList<T> dst, List<T> src){
+        List<T> temp = new ArrayList<>();
+        for(T t : src){
+            if(dst.indexOf(t) == -1) temp.add(t);
+        }
+        dst.addAll(temp);
+        return temp.size();
     }
 }

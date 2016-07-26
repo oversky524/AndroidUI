@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
+import io.base.exceptions.ExceptionUtils;
+
 /**
  * Created by gaochao on 2015/7/21.
  * 与IO流相关的utility方法

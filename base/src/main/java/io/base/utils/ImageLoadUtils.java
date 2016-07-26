@@ -6,16 +6,22 @@ import android.net.Uri;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.bumptech.glide.BitmapRequestBuilder;
+import com.bumptech.glide.DrawableRequestBuilder;
+import com.bumptech.glide.DrawableTypeRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
 import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
 
 import java.io.File;
 
 import io.base.BaseApplication;
+import io.base.exceptions.ExceptionUtils;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -27,7 +33,13 @@ public class ImageLoadUtils {
     private ImageLoadUtils(){}
 
     public static void intoGlobal(String url, ImageView imageView){
-        Glide.with(BaseApplication.getGlobalApp()).load(url).into(imageView);
+        DrawableTypeRequest<String> request = Glide.with(BaseApplication.getGlobalApp()).load(url);
+        if(BaseApplication.debug()) {
+            request.listener(new DebugRequestListener<String, GlideDrawable>())
+                    .into(imageView);
+        }else{
+            request.into(imageView);
+        }
     }
 
     public static void intoGlobal(Uri uri, ImageView imageView){
@@ -35,7 +47,13 @@ public class ImageLoadUtils {
     }
 
     public static void intoGlobalCenter(Uri uri, ImageView imageView){
-        Glide.with(BaseApplication.getGlobalApp()).load(uri).fitCenter().into(imageView);
+        DrawableRequestBuilder<Uri> request = Glide.with(BaseApplication.getGlobalApp()).load(uri).fitCenter();
+        if(BaseApplication.debug()) {
+            request.listener(new DebugRequestListener<Uri, GlideDrawable>())
+                    .into(imageView);
+        }else{
+            request.into(imageView);
+        }
     }
 
     public static void intoGlobalCenterCrop(Uri uri, ImageView imageView){
@@ -105,7 +123,25 @@ public class ImageLoadUtils {
     }
 
     public static void intoGlobalWithCircle(final String url, final ImageView imageView, final int placeholder) {
-        Glide.with(BaseApplication.getGlobalApp()).load(url).asBitmap().transform(new CircleTransformation(BaseApplication.getGlobalApp()))
-                .placeholder(placeholder).into(imageView);
+        BitmapRequestBuilder<String, Bitmap> request = Glide.with(BaseApplication.getGlobalApp()).load(url).asBitmap().transform(new CircleTransformation(BaseApplication.getGlobalApp()))
+                .placeholder(placeholder);
+        if(BaseApplication.debug()) {
+            request.listener(new DebugRequestListener<String, Bitmap>()).into(imageView);
+        }else{
+            request.into(imageView);
+        }
+    }
+
+    private static class DebugRequestListener<T, R> implements RequestListener<T, R>{
+        @Override
+        public boolean onException(Exception e, T model, Target<R> target, boolean isFirstResource) {
+            ExceptionUtils.printExceptionStack(e);
+            return false;
+        }
+
+        @Override
+        public boolean onResourceReady(R resource, T model, Target<R> target, boolean isFromMemoryCache, boolean isFirstResource) {
+            return false;
+        }
     }
 }

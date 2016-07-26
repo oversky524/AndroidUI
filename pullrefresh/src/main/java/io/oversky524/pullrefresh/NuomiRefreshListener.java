@@ -35,11 +35,11 @@ public class NuomiRefreshListener implements OnPullRefreshListener{
 
     @Override
     public View getPullingUpView(ViewGroup parent) {
-        return null;
-        /*View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.pulling_up_nuomi, parent, false);
+//        return null;
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.pulling_up_nuomi, parent, false);
         TextView textView = (TextView) view.findViewById(R.id.loading_more);
         mLoadingMoreTv = textView;
-        return view;*/
+        return view;
     }
 
     @Override

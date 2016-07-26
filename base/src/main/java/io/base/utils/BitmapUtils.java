@@ -131,8 +131,7 @@ public class BitmapUtils {
         Matrix matrix = new Matrix();
         matrix.postScale(scale, scale);
         // 得到新的图片
-        Bitmap newBitMap = Bitmap.createBitmap(bitMap, 0, 0, width, height, matrix, true);
-        return newBitMap;
+        return Bitmap.createBitmap(bitMap, 0, 0, width, height, matrix, true);
     }
 
     public static int getSampleSize(int bitmapWidth, int bitmapHeight, int targetWidth, int targetHeight){

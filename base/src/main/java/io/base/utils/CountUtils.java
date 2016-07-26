@@ -19,10 +19,15 @@ public class CountUtils extends CountDownTimer {
      */
     private TextView  btn_time;
     private Context context;
+    private CharSequence text;
 
+    /*
+    * @param millisInFuture,持续时间
+    * **/
     public CountUtils(long millisInFuture, long countDownInterval, TextView btn_time, Context context) {
         super (millisInFuture, countDownInterval);
         this.btn_time = btn_time;
+        text = btn_time.getText();
         this.context=context;
     }
 
@@ -36,7 +41,7 @@ public class CountUtils extends CountDownTimer {
 
     @Override
     public void onFinish(){
-        btn_time.setText ("获取");
+        btn_time.setText (text);
         btn_time.setClickable(true);
         /*btn_time.setText ("获取验证码");
         btn_time.setTextColor (context.getResources().getColor(R.color.color_333333));

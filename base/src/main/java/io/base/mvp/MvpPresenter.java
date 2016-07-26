@@ -2,6 +2,7 @@ package io.base.mvp;
 
 import android.content.Context;
 
+import de.greenrobot.event.EventBus;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 
@@ -12,14 +13,16 @@ abstract public class MvpPresenter<MvpView> {
     private MvpView mView;
     private Context mContext;
     private CompositeSubscription mCompositeSubscription = new CompositeSubscription();
+    private boolean mHasEventBus;
 
-    public void attachView(MvpView view){
-        mView = view;
-    }
+    protected void setHasEventBus(boolean hasEventBus){ mHasEventBus = hasEventBus; }
+
+    public void attachView(MvpView view){ attachView(view, null); }
 
     public void attachView(MvpView view, Context context){
         mView = view;
         mContext = context;
+        if(mHasEventBus) EventBus.getDefault().register(this);
     }
 
     public void detachView(){
@@ -27,6 +30,7 @@ abstract public class MvpPresenter<MvpView> {
         mContext = null;
         mCompositeSubscription.unsubscribe();
         mCompositeSubscription = null;
+        if(mHasEventBus) EventBus.getDefault().unregister(this);
     }
 
     public MvpView getView(){
@@ -35,7 +39,7 @@ abstract public class MvpPresenter<MvpView> {
 
     public Context getContext(){ return mContext; }
 
-    protected void addSubscription(Subscription s){ mCompositeSubscription.add(s); }
+    protected void addSubscription(Subscription s){ if(s != null) mCompositeSubscription.add(s); }
 
-    protected void removeSubscription(Subscription s){ mCompositeSubscription.remove(s); }
+    protected void removeSubscription(Subscription s){ if(s != null) mCompositeSubscription.remove(s); }
 }

@@ -13,6 +13,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.animation.AccelerateInterpolator;
 import android.widget.FrameLayout;
 
 import io.base.ScrollTouchHelper;
@@ -23,7 +24,7 @@ import io.base.ScrollTouchHelper;
 public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelper.ScrollTouchCallback {
     private static final boolean DEBUG = true;
     private static final String TAG = MyPullRefreshLayout.class.getSimpleName();
-    private static final int DEFAULT_ENDING_ANIMATION_DURATION = 500;//unit: ms
+    private static final int DEFAULT_ENDING_ANIMATION_DURATION = 100;//unit: ms
     private static final int LONG_WIDTH = 2;
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -100,10 +101,10 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
             mlp.gravity |= Gravity.BOTTOM;
             mRefreshingUpView.setLayoutParams(mlp);
         }
-        getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
-            public boolean onPreDraw() {
-                getViewTreeObserver().removeOnPreDrawListener(this);
+            public void onGlobalLayout() {
+                getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 View child = mRefreshingView;
                 if(child != null) {
                     final int height = child.getHeight();
@@ -118,7 +119,6 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
                     mInitYForUp = y;
                     child.setY(y + height);
                 }
-                return true;
             }
         });
     }
@@ -198,12 +198,12 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
                 mRefreshingView.animate().y(y - diff).setDuration(duration).setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        refreshingForDown();
+                        refreshingForDownInternal();
                     }
                 }).setInterpolator(interpolator).start();
                 mTargetView.animate().y(y - diff + height).setInterpolator(interpolator).setDuration(duration).start();
             } else {
-                refreshingForDown();
+                refreshingForDownInternal();
             }
         }else if(mPullingUp){
             final float y = mRefreshingUpView.getY();
@@ -229,10 +229,25 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         }
     }
 
-    private void refreshingForDown(){
+    private void refreshingForDownInternal(){
         mDownRefreshing = true;
         mRefreshingListener.refreshingForPullingDown();
         mRefreshProgressListener.onLoadNew(this);
+    }
+
+    public void refreshingForDown(){
+        getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                getViewTreeObserver().removeOnPreDrawListener(this);
+                final int h = mRefreshingView.getHeight();
+                final float y = getPaddingTop() + mRefreshingListener.getMinPullingDownDistance() - h;
+                mRefreshingView.setY(y);
+                mTargetView.setY(y + h);
+                refreshingForDownInternal();
+                return true;
+            }
+        });
     }
 
     private void refreshingForUp(){
@@ -266,7 +281,7 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
 
     private void startPullingDownEndingAnimations(){
         final int duration = mEndingAnimationDuration;
-        final TimeInterpolator interpolator = new FastOutLinearInInterpolator();
+        final TimeInterpolator interpolator = new AccelerateInterpolator();
         mRefreshingView.animate().y(mInitY - mRefreshingView.getHeight()).setInterpolator(interpolator)
                 .setDuration(duration).setListener(new AnimatorListenerAdapter() {
             @Override
@@ -279,7 +294,7 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
 
     private void startPullingUpEndingAnimations(){
         final int duration = mEndingAnimationDuration;
-        final TimeInterpolator interpolator = new FastOutLinearInInterpolator();
+        final TimeInterpolator interpolator = new AccelerateInterpolator();
         mRefreshingUpView.animate().y(mInitYForUp + mRefreshingUpView.getHeight()).setInterpolator(interpolator)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override

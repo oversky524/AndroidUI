@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.v4.app.Fragment;
 import android.view.View;
 import android.view.Window;
 
@@ -72,10 +73,27 @@ public class GetPhotoUtils {
         return uri;
     }
 
+    static public Uri getImageByCameraWithRandomName(Fragment activity){
+        Intent intent = new Intent (MediaStore.ACTION_IMAGE_CAPTURE);
+        Uri uri = Uri.fromFile(new File(getImageRandomPath()));
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+        activity.startActivityForResult(intent, CAMERA);
+        return uri;
+    }
+
     /**
      * 相册
      */
     static public void getImageByPhoto(Activity activity){
+        Intent intent = new Intent (Intent.ACTION_PICK,null);
+        intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, IMAGE_UNSPECIFIED);// 获取所有图片信息
+        activity.startActivityForResult(intent, GALLERY);
+    }
+
+    /**
+     * 相册
+     */
+    static public void getImageByPhoto(Fragment activity){
         Intent intent = new Intent (Intent.ACTION_PICK,null);
         intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, IMAGE_UNSPECIFIED);// 获取所有图片信息
         activity.startActivityForResult(intent, GALLERY);
@@ -303,9 +321,43 @@ public class GetPhotoUtils {
         });
     }
 
+    public static void showHeadPortraitSelectionDialogWithoutCut(final Fragment activity){
+        showHeadPortraitSelectionDialogWithoutCut(activity, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                GetPhotoUtils.getImageByPhoto(activity);
+            }
+        });
+    }
+
     public static void showHeadPortraitSelectionDialogWithoutCut(final Activity activity,
                                                                  final View.OnClickListener listener){
         final Dialog dialog = new Dialog(activity);
+        Window window = dialog.getWindow();
+        window.requestFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_select_photo_for_head_portrait);
+        window.getDecorView().setBackgroundResource(R.drawable.bg_shape_select_photo_for_head_portrait);
+        dialog.findViewById(R.id.get_photo_from_album).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.onClick(v);
+                dialog.dismiss();
+            }
+        });
+        dialog.findViewById(R.id.get_photo_from_camera).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sCameraPhotoUri = getImageByCameraWithRandomName(activity);
+                dialog.dismiss();
+            }
+        });
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.show();
+    }
+
+    public static void showHeadPortraitSelectionDialogWithoutCut(final Fragment activity,
+                                                                 final View.OnClickListener listener){
+        final Dialog dialog = new Dialog(activity.getContext());
         Window window = dialog.getWindow();
         window.requestFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_select_photo_for_head_portrait);

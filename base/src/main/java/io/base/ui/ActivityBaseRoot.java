@@ -23,9 +23,12 @@ import io.base.utils.ResourcesUtils;
  * Created by gaochao on 2015/11/14.
  */
 public class ActivityBaseRoot extends AppCompatActivity {
+    private SystemBarTintManager mSystemBarTintManager;
     private boolean mSetStatusBarOnce;
     private boolean mSupportEventBus;
     protected void setSupportEventBus(boolean support){ mSupportEventBus = support; }
+
+    protected SystemBarTintManager systemBarTintManager(){ return mSystemBarTintManager; }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,11 +64,12 @@ public class ActivityBaseRoot extends AppCompatActivity {
         win.setAttributes(winParams);
     }
 
-    protected void setStatusBar(){
+    private void setStatusBar(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             setTranslucentStatus(this, true);
         }
         SystemBarTintManager tintManager = new SystemBarTintManager(this);
+        mSystemBarTintManager = tintManager;
         // enable status bar tint
         tintManager.setStatusBarTintEnabled(true);
         tintManager.setStatusBarTintColor(ResourcesUtils.getColor(getResources(), R.color.colorPrimary));

@@ -95,6 +95,8 @@ abstract public class RecyclerViewAdapter<T> extends RecyclerView.Adapter<Recycl
         return VIEW_TYPE_FOOTER_FIRST + position;
     }
 
+    protected int getRealViewType(int viewType){ return viewType - VIEW_TYPE_REAL_FIRST; }
+
     protected int getItemViewTypeReal(int position){
         return 0;
     }

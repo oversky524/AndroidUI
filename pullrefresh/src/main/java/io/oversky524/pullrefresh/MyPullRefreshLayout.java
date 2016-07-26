@@ -98,13 +98,13 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         if(mRefreshingUpView != null){
             addView(mRefreshingUpView);
             FrameLayout.LayoutParams mlp = (FrameLayout.LayoutParams)mRefreshingUpView.getLayoutParams();
-            mlp.gravity |= Gravity.BOTTOM;
+            mlp.gravity = Gravity.BOTTOM;
             mRefreshingUpView.setLayoutParams(mlp);
         }
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
-            public void onGlobalLayout() {
-                getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            public boolean onPreDraw() {
+                getViewTreeObserver().removeOnPreDrawListener(this);
                 View child = mRefreshingView;
                 if(child != null) {
                     final int height = child.getHeight();
@@ -119,6 +119,7 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
                     mInitYForUp = y;
                     child.setY(y + height);
                 }
+                return true;
             }
         });
     }
@@ -236,16 +237,15 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
     }
 
     public void refreshingForDown(){
-        getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+        getViewTreeObserver().addOnDrawListener(new ViewTreeObserver.OnDrawListener() {
             @Override
-            public boolean onPreDraw() {
-                getViewTreeObserver().removeOnPreDrawListener(this);
+            public void onDraw() {
+                getViewTreeObserver().removeOnDrawListener(this);
                 final int h = mRefreshingView.getHeight();
                 final float y = getPaddingTop() + mRefreshingListener.getMinPullingDownDistance() - h;
                 mRefreshingView.setY(y);
                 mTargetView.setY(y + h);
                 refreshingForDownInternal();
-                return true;
             }
         });
     }

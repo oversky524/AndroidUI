@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import io.base.recyclerview.RecyclerViewAdapter;
+import io.oversky524.androidui.R;
 import io.oversky524.pullrefresh.OnLoadListener;
 import io.oversky524.pullrefresh.PullLayout;
 import rx.Observable;
@@ -23,9 +24,9 @@ public class RefreshingDemoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(io.oversky524.pullrefresh.R.layout.activity_refreshing_demo);
+        setContentView(R.layout.activity_refreshing_demo);
 
-        final PullLayout refreshLayout = (PullLayout)findViewById(io.oversky524.pullrefresh.R.id.refreshingLayout);
+        final PullLayout refreshLayout = (PullLayout)findViewById(R.id.refreshingLayout);
         RecyclerView lv = (RecyclerView)refreshLayout.getTargetView();
         lv.setLayoutManager(new LinearLayoutManager(this));
         ArrayList<String> data = new ArrayList<>(15);

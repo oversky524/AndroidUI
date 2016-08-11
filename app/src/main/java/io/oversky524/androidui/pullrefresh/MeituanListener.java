@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import io.base.utils.ResourcesUtils;
+import io.oversky524.androidui.R;
 import io.oversky524.pullrefresh.OnPullListener;
 
 /**
@@ -37,13 +38,13 @@ public class MeituanListener implements OnPullListener {
     @Override
     public View getDownView(ViewGroup parent) {
         Context context = parent.getContext();
-        View view = LayoutInflater.from(context).inflate(io.oversky524.pullrefresh.R.layout.pull_down_new, parent, false);
-        mTargetIv = (ImageView) view.findViewById(io.oversky524.pullrefresh.R.id.target);
+        View view = LayoutInflater.from(context).inflate(R.layout.pull_down_new, parent, false);
+        mTargetIv = (ImageView) view.findViewById(R.id.target);
         Resources resources = context.getResources();
         mDownInProgressAnimationDrawable = (AnimationDrawable) ResourcesUtils.getDrawable(resources,
-                io.oversky524.pullrefresh.R.drawable.animation_pull_down_in_progress);
+                R.drawable.animation_pull_down_in_progress);
         mDownRefreshingAnimationDrawable = (AnimationDrawable) ResourcesUtils.getDrawable(resources,
-                io.oversky524.pullrefresh.R.drawable.animation_pull_down_refreshing);
+                R.drawable.animation_pull_down_refreshing);
         return view;
     }
 
@@ -56,7 +57,7 @@ public class MeituanListener implements OnPullListener {
     public void downInProgress(float dx, float totalDx, float dy, float totalDy) {
         int height = mTargetIv.getHeight();
         if(height > totalDy){
-            mTargetIv.setBackgroundResource(io.oversky524.pullrefresh.R.mipmap.pull_image);
+            mTargetIv.setBackgroundResource(R.mipmap.pull_image);
             mTargetIv.setPivotX(mTargetIv.getWidth()/2);
             mTargetIv.setPivotY(mTargetIv.getHeight());
             mTargetIv.setScaleX(totalDy/height);

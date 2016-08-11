@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import io.oversky524.androidui.R;
 import io.oversky524.pullrefresh.OnPullListener;
 
 /**
@@ -30,9 +31,9 @@ public class DefaultListener implements OnPullListener {
 
     @Override
     public View getDownView(ViewGroup parent) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(io.oversky524.pullrefresh.R.layout.default_refreshing_layout, parent, false);
-        mPullingDownTv = (TextView)view.findViewById(io.oversky524.pullrefresh.R.id.pulling_down);
-        mRefreshingPb = (ProgressBar)view.findViewById(io.oversky524.pullrefresh.R.id.refreshing);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.default_refreshing_layout, parent, false);
+        mPullingDownTv = (TextView)view.findViewById(R.id.pulling_down);
+        mRefreshingPb = (ProgressBar)view.findViewById(R.id.refreshing);
         mPullingDownTv.setVisibility(View.VISIBLE);
         mRefreshingPb.setVisibility(View.INVISIBLE);
         return view;

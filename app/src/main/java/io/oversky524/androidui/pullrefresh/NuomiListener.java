@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import io.oversky524.androidui.R;
 import io.oversky524.pullrefresh.OnPullListener;
 
 /**
@@ -18,7 +19,7 @@ public class NuomiListener implements OnPullListener {
 
     @Override
     public void initForDown() {
-        mCoreTv.setText(io.oversky524.pullrefresh.R.string.pulling_down_refresh);
+        mCoreTv.setText(R.string.pulling_down_refresh);
     }
 
     @Override
@@ -29,8 +30,8 @@ public class NuomiListener implements OnPullListener {
     @Override
     public View getDownView(ViewGroup parent) {
 //        return null;
-        View view = LayoutInflater.from(parent.getContext()).inflate(io.oversky524.pullrefresh.R.layout.pulling_down_nuomi, parent, false);
-        TextView textView = (TextView) view.findViewById(io.oversky524.pullrefresh.R.id.core);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.pulling_down_nuomi, parent, false);
+        TextView textView = (TextView) view.findViewById(R.id.core);
         mCoreTv = textView;
         mRefreshingDrawable = (AnimationDrawable)(textView.getCompoundDrawables()[0]);
         return view;
@@ -50,10 +51,10 @@ public class NuomiListener implements OnPullListener {
         if(totalDy >= getMinDownDistance()) {
             mRefreshingDrawable.stop();
             mRefreshingDrawable.start();
-            mCoreTv.setText(io.oversky524.pullrefresh.R.string.releasing_refresh);
+            mCoreTv.setText(R.string.releasing_refresh);
         }else {
             mRefreshingDrawable.stop();
-            mCoreTv.setText(io.oversky524.pullrefresh.R.string.pulling_down_refresh);
+            mCoreTv.setText(R.string.pulling_down_refresh);
         }
     }
 
@@ -65,7 +66,7 @@ public class NuomiListener implements OnPullListener {
     @Override
     public void refreshingForDown() {
         if(!mRefreshingDrawable.isRunning()) mRefreshingDrawable.start();
-        mCoreTv.setText(io.oversky524.pullrefresh.R.string.loading_hard);
+        mCoreTv.setText(R.string.loading_hard);
     }
 
     @Override

@@ -7,13 +7,13 @@ import android.widget.AbsListView;
 /**
  * Created by gaochao on 2016/7/20.
  */
-public interface ChildCanContinuePullingListener {
+public interface OnChildPullListener {
 
     boolean canScrollUp(View target);
 
     boolean canScrollDown(View target);
 
-    class ListViewPullingListener implements ChildCanContinuePullingListener {
+    class Default implements OnChildPullListener {
         @Override
         public boolean canScrollUp(View target) {
             if (android.os.Build.VERSION.SDK_INT < 14) {

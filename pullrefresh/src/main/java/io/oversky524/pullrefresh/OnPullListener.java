@@ -6,20 +6,20 @@ import android.view.ViewGroup;
 /**
  * Created by gaochao on 2016/7/20.
  */
-public interface OnPullRefreshListener {
-    void initForPullingDown();
+public interface OnPullListener {
+    void initForDown();
 
-    void initForPullingUp();
+    void initForUp();
 
     /**
      * @return refreshing view when pulling down
      * */
-    View getPullingDownView(ViewGroup parent);
+    View getDownView(ViewGroup parent);
 
     /**
      * @return refreshing view when pulling up
      * */
-    View getPullingUpView(ViewGroup parent);
+    View getUpView(ViewGroup parent);
 
     /**
      * @param dx x offset between first down(or last move) event and this move event
@@ -40,44 +40,44 @@ public interface OnPullRefreshListener {
     /**
      * pulling down refreshing is under way
      * */
-    void refreshingForPullingDown();
+    void refreshingForDown();
 
     /**
      * refreshing is under way
      * */
-    void refreshingForPullingUp();
+    void refreshingForUp();
 
     /**
      * refreshing is over, and starts disappearing
      * */
-    void refreshingOverForPullingDown();
+    void refreshingOverForDown();
 
     /**
      * refreshing is over, and starts disappearing
      * */
-    void refreshingOverForPullingUp();
+    void refreshingOverForUp();
 
     /**
      * @return max pulling down distance
      * Integer.MAX_VALUE indicates that it's not cared about
      * */
-    int getMaxPullingDownDistance();
+    int getMaxDownDistance();
 
     /**
      * @return max pulling up distance
      * Integer.MAX_VALUE indicates that it's not cared about
      * */
-    int getMaxPullingUpDistance();
+    int getMaxUpDistance();
 
     /**
      * @return min pulling down distance
      * 0 indicates that it's not cared about
      * */
-    int getMinPullingDownDistance();
+    int getMinDownDistance();
 
     /**
      * @return min pulling up distance
      * 0 indicates that it's not cared about
      * */
-    int getMinPullingUpDistance();
+    int getMinUpDistance();
 }

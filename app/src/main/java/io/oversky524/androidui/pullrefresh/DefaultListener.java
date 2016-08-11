@@ -1,4 +1,4 @@
-package io.oversky524.pullrefresh;
+package io.oversky524.androidui.pullrefresh;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -7,37 +7,39 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import io.oversky524.pullrefresh.OnPullListener;
+
 /**
  * Created by gaochao on 2016/7/20.
  */
-public class DefaultRefreshListener implements OnPullRefreshListener {
+public class DefaultListener implements OnPullListener {
     private static final boolean DEBUG = true;
-    private static final String TAG = DefaultRefreshListener.class.getSimpleName();
+    private static final String TAG = DefaultListener.class.getSimpleName();
     private TextView mPullingDownTv;
     private ProgressBar mRefreshingPb;
 
     @Override
-    public void initForPullingDown() {
+    public void initForDown() {
 
     }
 
     @Override
-    public void initForPullingUp() {
+    public void initForUp() {
 
     }
 
     @Override
-    public View getPullingDownView(ViewGroup parent) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.default_refreshing_layout, parent, false);
-        mPullingDownTv = (TextView)view.findViewById(R.id.pulling_down);
-        mRefreshingPb = (ProgressBar)view.findViewById(R.id.refreshing);
+    public View getDownView(ViewGroup parent) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(io.oversky524.pullrefresh.R.layout.default_refreshing_layout, parent, false);
+        mPullingDownTv = (TextView)view.findViewById(io.oversky524.pullrefresh.R.id.pulling_down);
+        mRefreshingPb = (ProgressBar)view.findViewById(io.oversky524.pullrefresh.R.id.refreshing);
         mPullingDownTv.setVisibility(View.VISIBLE);
         mRefreshingPb.setVisibility(View.INVISIBLE);
         return view;
     }
 
     @Override
-    public View getPullingUpView(ViewGroup parent) {
+    public View getUpView(ViewGroup parent) {
         return null;
     }
 
@@ -54,44 +56,44 @@ public class DefaultRefreshListener implements OnPullRefreshListener {
     }
 
     @Override
-    public void refreshingForPullingDown() {
+    public void refreshingForDown() {
         if(DEBUG) Log.v(TAG, "refreshing");
         mPullingDownTv.setVisibility(View.INVISIBLE);
         mRefreshingPb.setVisibility(View.VISIBLE);
     }
 
     @Override
-    public void refreshingForPullingUp() {
+    public void refreshingForUp() {
 
     }
 
     @Override
-    public void refreshingOverForPullingDown() {
+    public void refreshingOverForDown() {
         if(DEBUG) Log.v(TAG, "refreshingOver");
     }
 
     @Override
-    public void refreshingOverForPullingUp() {
+    public void refreshingOverForUp() {
 
     }
 
     @Override
-    public int getMaxPullingDownDistance() {
+    public int getMaxDownDistance() {
         return Integer.MAX_VALUE;
     }
 
     @Override
-    public int getMaxPullingUpDistance() {
+    public int getMaxUpDistance() {
         return Integer.MAX_VALUE;
     }
 
     @Override
-    public int getMinPullingDownDistance() {
+    public int getMinDownDistance() {
         return 0;
     }
 
     @Override
-    public int getMinPullingUpDistance() {
+    public int getMinUpDistance() {
         return 0;
     }
 }

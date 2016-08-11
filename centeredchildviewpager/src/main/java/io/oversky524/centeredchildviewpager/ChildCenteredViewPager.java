@@ -89,9 +89,19 @@ public class ChildCenteredViewPager extends ViewGroup {
             }
 
             @Override
-            public void doScroll(float dx, float tx, float dy, float ty) {
+            public boolean shouldInterceptTouchMoveEvent(int touchSlop, float dx, float dy) {
+                return false;
+            }
+
+            @Override
+            public void doActionMove(float dx, float tx, float dy, float ty) {
                 ChildCenteredViewPager.this.doScroll(dx);
                 if(DEBUG) Log.v(TAG, "doScroll");
+            }
+
+            @Override
+            public void doActionCancel() {
+
             }
 
             @Override

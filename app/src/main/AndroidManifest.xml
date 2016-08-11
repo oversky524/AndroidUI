@@ -21,6 +21,11 @@
                 <action android:name="android.intent.action.UiDemos" />
             </intent-filter>
         </activity>
+        <activity android:name="io.oversky524.androidui.pullrefresh.RefreshingDemoActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.UiDemos" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

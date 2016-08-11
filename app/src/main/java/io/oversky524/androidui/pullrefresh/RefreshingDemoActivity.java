@@ -1,4 +1,4 @@
-package io.oversky524.pullrefresh;
+package io.oversky524.androidui.pullrefresh;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import io.base.recyclerview.RecyclerViewAdapter;
+import io.oversky524.pullrefresh.OnLoadListener;
+import io.oversky524.pullrefresh.PullLayout;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -21,9 +23,9 @@ public class RefreshingDemoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_refreshing_demo);
+        setContentView(io.oversky524.pullrefresh.R.layout.activity_refreshing_demo);
 
-        final MyPullRefreshLayout refreshLayout = (MyPullRefreshLayout)findViewById(R.id.refreshingLayout);
+        final PullLayout refreshLayout = (PullLayout)findViewById(io.oversky524.pullrefresh.R.id.refreshingLayout);
         RecyclerView lv = (RecyclerView)refreshLayout.getTargetView();
         lv.setLayoutManager(new LinearLayoutManager(this));
         ArrayList<String> data = new ArrayList<>(15);
@@ -46,10 +48,9 @@ public class RefreshingDemoActivity extends AppCompatActivity {
                 ((TextView)holder.itemView).setText(String.valueOf(position));
             }
         });
-//        lv.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, data));
-        refreshLayout.setOnRefreshListener(new MyPullRefreshLayout.OnRefreshListener() {
+        refreshLayout.setOnRefreshListener(new OnLoadListener() {
             @Override
-            public void onLoadNew(final MyPullRefreshLayout rl) {
+            public void onLoadNew(final PullLayout rl) {
                 Observable.just(null).delay(2, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Action1<Object>() {
                     @Override
@@ -60,7 +61,7 @@ public class RefreshingDemoActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onLoadMore(final MyPullRefreshLayout refreshLayout) {
+            public void onLoadMore(final PullLayout refreshLayout) {
                 Observable.just(null).delay(2, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Action1<Object>() {
                             @Override
@@ -70,8 +71,7 @@ public class RefreshingDemoActivity extends AppCompatActivity {
                         });
             }
         });
-        refreshLayout.setOnPullRefreshListener(new NuomiRefreshListener());
-        refreshLayout.setChildCanContinuePullingListener(new ChildCanContinuePullingListener.ListViewPullingListener());
+        refreshLayout.setOnPullRefreshListener(new NuomiListener());
         refreshLayout.refreshingForDown();
     }
 }

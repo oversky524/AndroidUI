@@ -23,7 +23,7 @@ public class ScrollTouchHelper {
     private int mActivePointerId = INVALID_POINTER;
     private VelocityTracker mVelocityTracker;
     private int mMaximumVelocity;
-    private float mLastMotionX;
+    private float mLastMotionX = Float.MIN_VALUE;
     private float mLastMotionY;
     private float mInitialMotionX;
     private float mInitialMotionY;
@@ -88,8 +88,15 @@ public class ScrollTouchHelper {
                 if (DEBUG) Log.v(TAG, "mInitialMotionY1=" + mInitialMotionY + ", y=" + y);
                 if (mCallback.shouldInterceptTouchEvent(mTouchSlop, dx, dy)) {
                     mIsDragging = true;
-                    requestParentDisallowInterceptTouchEvent(true);
                 }
+                if(!mIsDragging && mLastMotionX != Float.MIN_VALUE &&
+                        mCallback.shouldInterceptTouchMoveEvent(mTouchSlop, x - mLastMotionX, y - mLastMotionY)){
+                    mIsDragging = true;
+                    mInitialMotionX = mLastMotionX;
+                    mInitialMotionY = mLastMotionY;
+                }
+                mLastMotionX = x;
+                mLastMotionY = y;
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:
@@ -142,24 +149,6 @@ public class ScrollTouchHelper {
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                if (!mIsDragging) {
-                    final int activePointerId = mActivePointerId;
-                    if (activePointerId == INVALID_POINTER) {
-                        // If we don't have a valid id, the touch down wasn't on content.
-                        break;
-                    }
-
-                    final int pointerIndex = MotionEventCompat.findPointerIndex(ev, activePointerId);
-                    final float x = MotionEventCompat.getX(ev, pointerIndex);
-                    final float dx = x - mInitialMotionY;
-                    final float y = MotionEventCompat.getY(ev, pointerIndex);
-                    final float dy = y - mInitialMotionY;
-                    if (DEBUG) Log.v(TAG, "mInitialMotionY2=" + mInitialMotionY + ", y=" + y);
-                    if (mCallback.shouldInterceptTouchEvent(mTouchSlop, dx, dy)) {
-                        mIsDragging = true;
-                        requestParentDisallowInterceptTouchEvent(true);
-                    }
-                }
                 if (mIsDragging) {
                     // Scroll to follow the motion event
                     final int pointerIndex = MotionEventCompat.findPointerIndex(ev, mActivePointerId);
@@ -169,7 +158,7 @@ public class ScrollTouchHelper {
                     final float dy = y - mLastMotionY;
                     if (DEBUG)
                         Log.v(TAG, "x=" + x + ", lastX=" + mLastMotionX + ", dx=" + dx + ", dy=" + dy);
-                    mCallback.doScroll(dx, x - mInitialMotionX, dy, y - mInitialMotionY);
+                    mCallback.doActionMove(dx, x - mInitialMotionX, dy, y - mInitialMotionY);
                     mLastMotionX = x;
                     mLastMotionY = y;
                 }
@@ -202,6 +191,7 @@ public class ScrollTouchHelper {
                 break;
 
             case MotionEvent.ACTION_CANCEL:
+                mCallback.doActionCancel();
                 endDrag();
                 break;
         }
@@ -222,13 +212,17 @@ public class ScrollTouchHelper {
 
         boolean shouldInterceptTouchEvent(int touchSlop, float dx, float dy);
 
+        boolean shouldInterceptTouchMoveEvent(int touchSlop, float dx, float dy);
+
         /**
          * @param dx x offset between first down(or last move) event and this move event
          * @param tx x offset between first down event and this move event
          * @param dy y offset between first down(or last move) event and this move event
          * @param dy y offset between first down event and this move event
          */
-        void doScroll(float dx, float tx, float dy, float ty);
+        void doActionMove(float dx, float tx, float dy, float ty);
+
+        void doActionCancel();
 
         void doActionUp(float velocityX, float velocityY, float totalDx, float totalDy, float dx, float dy);
     }

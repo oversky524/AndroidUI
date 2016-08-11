@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<io.oversky524.pullrefresh.MyPullRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<io.oversky524.pullrefresh.PullLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="@color/white"
     android:id="@+id/refreshingLayout"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,10 +9,10 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="io.oversky524.pullrefresh.RefreshingDemoActivity">
+    tools:context="io.oversky524.androidui.pullrefresh.RefreshingDemoActivity">
 
     <android.support.v7.widget.RecyclerView android:id="@+id/listView"
         android:background="@color/white"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-</io.oversky524.pullrefresh.MyPullRefreshLayout>
+</io.oversky524.pullrefresh.PullLayout>

@@ -5,13 +5,16 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.TimeInterpolator;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.os.Build;
 import android.support.v4.view.animation.FastOutLinearInInterpolator;
+import android.support.v4.widget.EdgeEffectCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.FrameLayout;
@@ -21,26 +24,42 @@ import io.base.ScrollTouchHelper;
 /**
  * Created by gaochao on 2016/7/20.
  */
-public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelper.ScrollTouchCallback {
+public class PullLayout extends FrameLayout implements ScrollTouchHelper.ScrollTouchCallback {
     private static final boolean DEBUG = true;
-    private static final String TAG = MyPullRefreshLayout.class.getSimpleName();
+    private static final String TAG = PullLayout.class.getSimpleName();
     private static final int DEFAULT_ENDING_ANIMATION_DURATION = 100;//unit: ms
     private static final int LONG_WIDTH = 2;
 
+    private EdgeEffectCompat mTopGlow, mBottomGlow;
+    private float mEdgeEffectWidth, mEdgeEffectHeight;
+
+    private OnChildPullListener mPullingListener = new OnChildPullListener.Default();
+    private ScrollTouchHelper mTouchHelper;
+    private OnPullListener mRefreshingListener;
+    private ViewGroup mTargetView;
+    private View mRefreshingView;
+    private View mRefreshingUpView;
+    private float mInitY, mInitYForUp;
+    private boolean mPullingDown, mPullingUp;
+    private boolean mDownRefreshing, mUpRefreshing;//swallow events when refreshing
+    private int mEndingAnimationDuration = DEFAULT_ENDING_ANIMATION_DURATION;
+    private boolean mClipToPadding;
+    private boolean mRefreshingForDown;
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public MyPullRefreshLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public PullLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public MyPullRefreshLayout(Context context) {
+    public PullLayout(Context context) {
         super(context);
     }
 
-    public MyPullRefreshLayout(Context context, AttributeSet attrs) {
+    public PullLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public MyPullRefreshLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+    public PullLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
@@ -49,6 +68,11 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         boolean result = mTouchHelper.onInterceptTouchEvent(ev) ? true : super.onInterceptTouchEvent(ev);
         if(DEBUG) Log.v(TAG, "onInterceptTouchEvent=" + result);
         return result;
+    }
+
+    @Override
+    public void requestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+//        super.requestDisallowInterceptTouchEvent(disallowIntercept);
     }
 
     @Override
@@ -64,21 +88,17 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         if(getChildCount() > 1){
             throw new RuntimeException("Can only one child view!");
         }
-        mTargetView = getChildAt(0);
+        mTargetView = (ViewGroup) getChildAt(0);
         mTargetView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         mTouchHelper = new ScrollTouchHelper(this, this);
     }
 
-    private ChildCanContinuePullingListener mPullingListener;
-    private ScrollTouchHelper mTouchHelper;
-    private OnPullRefreshListener mRefreshingListener;
-    private View mTargetView;
-    private View mRefreshingView;
-    private View mRefreshingUpView;
-    private float mInitY, mInitYForUp;
-    private boolean mPullingDown, mPullingUp;
-    private boolean mDownRefreshing, mUpRefreshing;//swallow events when refreshing
-    private int mEndingAnimationDuration = DEFAULT_ENDING_ANIMATION_DURATION;
+    @Override
+    public void setClipToPadding(boolean clipToPadding) {
+        mClipToPadding = clipToPadding;
+        super.setClipToPadding(clipToPadding);
+        ensureEdgeEffects();
+    }
 
     public void setEndingAnimationDuration(int duration){
         mEndingAnimationDuration = duration;
@@ -88,13 +108,13 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         return mTargetView;
     }
 
-    public void setOnPullRefreshListener(OnPullRefreshListener listener){
+    public void setOnPullRefreshListener(OnPullListener listener){
         mRefreshingListener = listener;
 
-        mRefreshingView = listener.getPullingDownView(this);
+        mRefreshingView = listener.getDownView(this);
         if(mRefreshingView != null) addView(mRefreshingView, 0);
 
-        mRefreshingUpView = listener.getPullingUpView(this);
+        mRefreshingUpView = listener.getUpView(this);
         if(mRefreshingUpView != null){
             addView(mRefreshingUpView);
             FrameLayout.LayoutParams mlp = (FrameLayout.LayoutParams)mRefreshingUpView.getLayoutParams();
@@ -119,21 +139,22 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
                     mInitYForUp = y;
                     child.setY(y + height);
                 }
+                refreshingWhenEntering();
                 return true;
             }
         });
     }
 
-    public void setChildCanContinuePullingListener(ChildCanContinuePullingListener listener){
+    public void setChildCanContinuePullingListener(OnChildPullListener listener){
         mPullingListener = listener;
     }
 
     @Override
     public void clearForInit() {
         if(mUpRefreshing){
-            mRefreshingListener.initForPullingUp();
+            mRefreshingListener.initForUp();
         }else if(mDownRefreshing){
-            mRefreshingListener.initForPullingDown();
+            mRefreshingListener.initForDown();
         }
     }
 
@@ -142,45 +163,138 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         if(!isEnabled()) return false;
         if(mDownRefreshing || mUpRefreshing) return true;
 
-        if(mRefreshingView != null && canScrollUp(touchSlop, dx, dy)){
-            mPullingDown = true;
+        if(canChildScrollUp(touchSlop, dx, dy)){
+            mPullingDown = mRefreshingView != null;
             return true;
         }
 
-        if(mRefreshingUpView != null && canScrollDown(touchSlop, dx, dy)){
-            mPullingUp = true;
+        if(canChildScrollDown(touchSlop, dx, dy)){
+            mPullingUp = mRefreshingUpView != null;
             return true;
         }
 
         return false;
     }
 
-    private boolean canScrollUp(int touchSlop, float dx, float dy){
+    @Override
+    public boolean shouldInterceptTouchMoveEvent(int touchSlop, float dx, float dy) {
+        return shouldInterceptTouchEvent(touchSlop, dx, dy);
+    }
+
+    private boolean canChildScrollUp(int touchSlop, float dx, float dy){
         if(DEBUG) Log.v(TAG, "canScrollUp: touchSlop=" + touchSlop + ", dx=" + dx + ", dy=" + dy + "," +
                 "mPullingListener.canScrollUp(mTargetView)=" + mPullingListener.canScrollUp(mTargetView));
         return LONG_WIDTH * Math.abs(dx) <= Math.abs(dy) && touchSlop <= dy && !mPullingListener.canScrollUp(mTargetView);
     }
 
-    private boolean canScrollDown(int touchSlop, float dx, float dy){
+    private boolean canChildScrollDown(int touchSlop, float dx, float dy){
         if(DEBUG) Log.v(TAG, "canScrollDown: touchSlop=" + touchSlop + ", dx=" + dx + ", dy=" + dy + "," +
                 "mPullingListener.canScrollDown(mTargetView)=" + mPullingListener.canScrollDown(mTargetView));
         return LONG_WIDTH * Math.abs(dx) <= Math.abs(dy) && touchSlop <= -dy && !mPullingListener.canScrollDown(mTargetView);
     }
 
     @Override
-    public void doScroll(float dx, float totalDx, float dy, float totalDy) {
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        ensureEdgeEffects();
+    }
+
+    @Override
+    public void setOverScrollMode(int overScrollMode) {
+        super.setOverScrollMode(overScrollMode);
+        ensureEdgeEffects();
+    }
+
+    private void ensureEdgeEffects(){
+        if(getOverScrollMode() == OVER_SCROLL_NEVER){
+            mBottomGlow = mTopGlow = null;
+            return;
+        }
+        int width, height;
+        if (mClipToPadding) {
+            width = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
+            height = getMeasuredHeight() - getPaddingTop() - getPaddingBottom();
+        } else {
+            width = getMeasuredWidth();
+            height = getMeasuredHeight();
+        }
+        mEdgeEffectHeight = height;
+        mEdgeEffectWidth = width;
+        if(mRefreshingView == null){
+            if (mTopGlow == null) {
+                mTopGlow = new EdgeEffectCompat(getContext());
+            }
+            mTopGlow.setSize(width, height);
+        }else{
+            mTopGlow = null;
+        }
+        if(mRefreshingUpView == null){
+            if (mBottomGlow == null) {
+                mBottomGlow = new EdgeEffectCompat(getContext());
+            }
+            mBottomGlow.setSize(width, height);
+        }else{
+            mBottomGlow = null;
+        }
+    }
+
+    @Override
+    public void doActionMove(float dx, float totalDx, float dy, float totalDy) {
+        final View targetView = mTargetView, upView = mRefreshingUpView, downView = mRefreshingView;
+        final OnPullListener refreshListener = mRefreshingListener;
         if(mPullingDown) {
-            mRefreshingListener.downInProgress(dx, totalDx, dy, totalDy);
-            float y = mRefreshingView.getY();
-            y = (Math.min(Math.min(y + dy, mRefreshingView.getTop()), mRefreshingListener.getMaxPullingDownDistance()));
-            mRefreshingView.setY(y);
-            mTargetView.setY(y + mRefreshingView.getHeight());
+            refreshListener.downInProgress(dx, totalDx, dy, totalDy);
+            float y = downView.getY();
+            y = (Math.min(Math.min(y + dy, downView.getTop()), refreshListener.getMaxDownDistance()));
+            downView.setY(y);
+            targetView.setY(y + downView.getHeight());
         }else if(mPullingUp){
-            mRefreshingListener.upInProgress(dx, totalDx, dy, totalDy);
-            final float y = mRefreshingUpView.getY();
-            final float yMin = getHeight() - getPaddingBottom() - mRefreshingListener.getMaxPullingUpDistance();
-            mRefreshingUpView.setY(Math.max(y + dy, yMin));
-            mTargetView.setY(mRefreshingUpView.getY() - mTargetView.getHeight());
+            refreshListener.upInProgress(dx, totalDx, dy, totalDy);
+            final float y = upView.getY();
+            final float yMin = getHeight() - getPaddingBottom() - refreshListener.getMaxUpDistance();
+            upView.setY(Math.max(y + dy, yMin));
+            targetView.setY(upView.getY() - targetView.getHeight());
+        }else{
+            final float ty = targetView.getY();
+            if(downView == null && mTopGlow != null && ty + dy > 0){
+                mTopGlow.onPull(-dy / mEdgeEffectHeight, .5f);
+                if(!mTopGlow.isFinished()) postInvalidateOnAnimation();
+            }
+            if(upView == null && mBottomGlow != null && ty + dy < 0){
+                mBottomGlow.onPull(-dy / mEdgeEffectHeight, .5f);
+                if(!mBottomGlow.isFinished()) postInvalidateOnAnimation();
+            }
+        }
+    }
+
+    @Override
+    public void doActionCancel() {
+        releaseEdgeEffects();
+    }
+
+    @Override
+    public void draw(Canvas canvas) {
+        super.draw(canvas);
+        boolean needsInvalidate = false;
+        if(mBottomGlow != null && !mBottomGlow.isFinished()){
+            final int sc = canvas.save();
+            canvas.rotate(180);
+            if (mClipToPadding) {
+                canvas.translate(-getWidth() + getPaddingRight(), -getHeight() + getPaddingBottom());
+            } else {
+                canvas.translate(-getWidth(), -getHeight());
+            }
+            needsInvalidate |= mBottomGlow.draw(canvas);
+            canvas.restoreToCount(sc);
+        }
+        if(mTopGlow != null && !mTopGlow.isFinished()){
+            final int sc = canvas.save();
+            if(mClipToPadding) canvas.translate(getPaddingLeft(), getPaddingTop());
+            needsInvalidate |= mTopGlow.draw(canvas);
+            canvas.restoreToCount(sc);
+        }
+        if(needsInvalidate){
+            postInvalidateOnAnimation();
         }
     }
 
@@ -190,7 +304,7 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         if(mPullingDown) {
             final float y = mRefreshingView.getY();
             final int height = mRefreshingView.getHeight();
-            final float diff = y + height - mRefreshingListener.getMinPullingDownDistance() - getPaddingTop();
+            final float diff = y + height - mRefreshingListener.getMinDownDistance() - getPaddingTop();
             if (diff < 0) { //don't refresh if move distance is least than a distance when a finger releases up
                 startPullingDownEndingAnimations();
             } else if (diff > 0) { //don't leave empty when refreshing on the top of the refreshing view
@@ -209,7 +323,7 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         }else if(mPullingUp){
             final float y = mRefreshingUpView.getY();
             final int height = getHeight();
-            final int minDistance = mRefreshingListener.getMinPullingUpDistance();
+            final int minDistance = mRefreshingListener.getMinUpDistance();
             final int paddingBottom = getPaddingBottom();
             final float diff = height - paddingBottom - y - minDistance;
             if(diff < 0){
@@ -228,40 +342,42 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
                 mTargetView.animate().y(y + diff - mTargetView.getHeight()).setDuration(duration).setInterpolator(interpolator).start();
             }
         }
+        releaseEdgeEffects();
+    }
+
+    private void releaseEdgeEffects(){
+        if(mTopGlow != null) mTopGlow.onRelease();
+        if(mBottomGlow != null) mBottomGlow.onRelease();
     }
 
     private void refreshingForDownInternal(){
         mDownRefreshing = true;
-        mRefreshingListener.refreshingForPullingDown();
+        mRefreshingListener.refreshingForDown();
         mRefreshProgressListener.onLoadNew(this);
     }
 
     public void refreshingForDown(){
-        getViewTreeObserver().addOnDrawListener(new ViewTreeObserver.OnDrawListener() {
-            @Override
-            public void onDraw() {
-                getViewTreeObserver().removeOnDrawListener(this);
-                final int h = mRefreshingView.getHeight();
-                final float y = getPaddingTop() + mRefreshingListener.getMinPullingDownDistance() - h;
-                mRefreshingView.setY(y);
-                mTargetView.setY(y + h);
-                refreshingForDownInternal();
-            }
-        });
+        mRefreshingForDown = true;
+    }
+
+    private void refreshingWhenEntering(){
+        if(!mRefreshingForDown) return;
+        mRefreshingForDown = false;
+        final int h = mRefreshingView.getHeight();
+        final float y = getPaddingTop() + mRefreshingListener.getMinDownDistance() - h;
+        mRefreshingView.setY(y);
+        mTargetView.setY(y + h);
+        refreshingForDownInternal();
     }
 
     private void refreshingForUp(){
         mUpRefreshing = true;
-        mRefreshingListener.refreshingForPullingUp();
+        mRefreshingListener.refreshingForUp();
         mRefreshProgressListener.onLoadMore(this);
     }
 
-    public interface OnRefreshListener{
-        void onLoadNew(MyPullRefreshLayout refreshLayout);
-        void onLoadMore(MyPullRefreshLayout refreshLayout);
-    }
-    private OnRefreshListener mRefreshProgressListener;
-    public void setOnRefreshListener(OnRefreshListener listener){
+    private OnLoadListener mRefreshProgressListener;
+    public void setOnRefreshListener(OnLoadListener listener){
         mRefreshProgressListener = listener;
     }
 
@@ -310,11 +426,11 @@ public class MyPullRefreshLayout extends FrameLayout implements ScrollTouchHelpe
         if(mDownRefreshing){
             mPullingDown = false;
             mDownRefreshing = false;
-            mRefreshingListener.refreshingOverForPullingDown();
+            mRefreshingListener.refreshingOverForDown();
         }else if(mUpRefreshing){
             mPullingUp = false;
             mUpRefreshing = false;
-            mRefreshingListener.refreshingOverForPullingUp();
+            mRefreshingListener.refreshingOverForUp();
         }
     }
 }

@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import io.base.ScrollTouchHelper;
+import io.base.utils.ScrollTouchHelper;
 
 /**
  * Created by gaochao on 2016/1/27.

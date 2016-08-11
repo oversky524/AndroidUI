@@ -19,7 +19,7 @@ import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.FrameLayout;
 
-import io.base.ScrollTouchHelper;
+import io.base.utils.ScrollTouchHelper;
 
 /**
  * Created by gaochao on 2016/7/20.
@@ -396,6 +396,7 @@ public class PullLayout extends FrameLayout implements ScrollTouchHelper.ScrollT
     }
 
     private void startPullingDownEndingAnimations(){
+        refreshingDone();
         final int duration = mEndingAnimationDuration;
         final TimeInterpolator interpolator = new AccelerateInterpolator();
         mRefreshingView.animate().y(mInitY - mRefreshingView.getHeight()).setInterpolator(interpolator)
@@ -409,6 +410,7 @@ public class PullLayout extends FrameLayout implements ScrollTouchHelper.ScrollT
     }
 
     private void startPullingUpEndingAnimations(){
+        refreshingDone();
         final int duration = mEndingAnimationDuration;
         final TimeInterpolator interpolator = new AccelerateInterpolator();
         mRefreshingUpView.animate().y(mInitYForUp + mRefreshingUpView.getHeight()).setInterpolator(interpolator)
@@ -426,10 +428,16 @@ public class PullLayout extends FrameLayout implements ScrollTouchHelper.ScrollT
         if(mDownRefreshing){
             mPullingDown = false;
             mDownRefreshing = false;
-            mRefreshingListener.refreshingOverForDown();
         }else if(mUpRefreshing){
             mPullingUp = false;
             mUpRefreshing = false;
+        }
+    }
+
+    private void refreshingDone(){
+        if(mDownRefreshing){
+            mRefreshingListener.refreshingOverForDown();
+        }else if(mUpRefreshing){
             mRefreshingListener.refreshingOverForUp();
         }
     }

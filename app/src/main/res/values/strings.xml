@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">AndroidUi</string>
+    <string name="pulling_down_refresh">下拉即可刷新</string>
+    <string name="releasing_refresh">释放即可刷新</string>
+    <string name="loading_hard">努力加载中。。。</string>
+    <string name="loading_more">加载更多中。。。</string>
 </resources>
